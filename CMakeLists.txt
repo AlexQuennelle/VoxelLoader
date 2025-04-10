@@ -14,7 +14,7 @@ set(CMAKE_CXX_FLAGS "-Wall -Wextra")
 add_compile_options("$<$<COMPILE_LANGUAGE:CXX>:-O3;-ffast-math>")
 
 # Change this to match the name of the current folder
-project(RaylibTesting CXX C)
+project(VoxelLoader CXX C)
 option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
 
 set(RAYLIB_VERSION 5.5)
@@ -50,6 +50,7 @@ file(GLOB_RECURSE MY_SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/Src/
 add_executable("${CMAKE_PROJECT_NAME}") 
 
 file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/Resources" DESTINATION "${PROJECT_BINARY_DIR}")
+target_compile_definitions("${CMAKE_PROJECT_NAME}" PUBLIC NAME="${CMAKE_PROJECT_NAME}")
 
 if(PRODUCTION_BUILD)
 	# setup the ASSETS_PATH macro to be in the root folder of your exe
