@@ -1,5 +1,5 @@
-#include "raylib.h"
 #include "model.h"
+#include "raylib.h"
 
 int main()
 {
