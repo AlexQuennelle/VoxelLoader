@@ -90,20 +90,7 @@ void DrawVolume(Model* model)
 		DrawCube({static_cast<float>(voxel.X), static_cast<float>(voxel.Y),
 				  static_cast<float>(voxel.Z)},
 				 1.0f, 1.0f, 1.0f, {col[0], col[1], col[2], col[3]});
-		//1.0f, 1.0f, 1.0f, {255, 255, 255, 255});
 	}
-	//Chunk* chunk = model->chunks[1].get();
-	//if (auto* xyzichunk = static_cast<XYZIChunk*>(chunk))
-	//{
-	//	uint32_t voxelCount = xyzichunk->voxels.size();
-	//	for (uint32_t i{0}; i < voxelCount; i++)
-	//	{
-	//		Vector4Int vox = xyzichunk->voxels[i];
-	//		DrawCube({static_cast<float>(vox.X), static_cast<float>(vox.Y),
-	//				  static_cast<float>(vox.Z)},
-	//				 1.0f, 1.0f, 1.0f, {255, 255, 255, 255});
-	//	}
-	//}
 }
 
 } //namespace vxl

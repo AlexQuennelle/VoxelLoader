@@ -15,7 +15,6 @@
 #include <winnt.h>
 #include <winscard.h>
 
-
 namespace vxl
 {
 using std::ios;
@@ -86,32 +85,25 @@ void Model::ProcessChunks(char* bytes)
 		std::memcpy(&chunkID, addr, 4);
 		std::memcpy(&chunkContent, addr + 4, 4);
 		std::memcpy(&chunkChildren, addr + 8, 4);
-		//Chunk* chunk;
 		switch (chunkID)
 		{
 		case BOUNDINGBOX:
-			this->chunks.emplace_back(std::make_unique<SizeChunk>(
-				chunkContent + 12, addr));
-			//chunk = new SizeChunk(chunkContent + 12, addr);
+			this->chunks.emplace_back(
+				std::make_unique<SizeChunk>(chunkContent + 12, addr));
 			break;
 		case VOXELDATA:
-			this->chunks.emplace_back(std::make_unique<XYZIChunk>(
-				chunkContent + 12, addr));
-			//chunk = new XYZIChunk(chunkContent + 12, addr);
+			this->chunks.emplace_back(
+				std::make_unique<XYZIChunk>(chunkContent + 12, addr));
 			break;
 		case ANIMDATA:
-			this->chunks.emplace_back(std::make_unique<PackChunk>(
-				chunkContent + 12, addr));
-			//chunk = new PackChunk(chunkContent + 12, addr);
+			this->chunks.emplace_back(
+				std::make_unique<PackChunk>(chunkContent + 12, addr));
 			break;
 		default:
-			this->chunks.emplace_back(std::make_unique<Chunk>(
-				chunkContent + 12, addr));
-			//chunk = new Chunk(chunkContent + 12, addr);
+			this->chunks.emplace_back(
+				std::make_unique<Chunk>(chunkContent + 12, addr));
 			break;
 		}
-		//std::unique_ptr<Chunk> uChunk(chunk);
-		//this->chunks.push_back(std::move(uChunk));
 		addr += (chunkContent + chunkChildren + 12);
 		std::cout << "Chunk Processed" << '\n';
 	}
