@@ -15,4 +15,4 @@ start %parent%
 exit
 ```
 3. Put that file in the root folder next to the CMakeLists.txt
-4. Run Build.bat
+4. Run build.bat
