@@ -83,8 +83,14 @@ void Model::ProcessChunks(char* bytes)
 		Chunk* chunk;
 		switch (chunkID)
 		{
-		case 0x53495445:
+		case 0x455A4953:
 			chunk = new SizeChunk(chunkContent + 12, addr);
+			break;
+		case 0x495A5958:
+			chunk = new XYZIChunk(chunkContent + 12, addr);
+			break;
+		case 0x4B434150:
+			chunk = new PackChunk(chunkContent + 12, addr);
 			break;
 		default:
 			chunk = new Chunk(chunkContent + 12, addr);
