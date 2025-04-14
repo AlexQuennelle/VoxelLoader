@@ -13,14 +13,20 @@
 #include <string>
 #include <windows.h>
 #include <winnt.h>
+#include <winscard.h>
+
+
+namespace vxl
+{
+using std::ios;
 
 #define FOREGROUND_WHITE 0xf
 #define FOREGROUND_GREY 0x7
 #define FOREGROUND_YELLOW 0xe
 
-namespace vxl
-{
-using std::ios;
+#define BOUNDINGBOX 0x455A4953
+#define VOXELDATA 0x495A5958
+#define ANIMDATA 0x4B434150
 
 Model::Model(const std::string& filePath)
 {
@@ -80,24 +86,32 @@ void Model::ProcessChunks(char* bytes)
 		std::memcpy(&chunkID, addr, 4);
 		std::memcpy(&chunkContent, addr + 4, 4);
 		std::memcpy(&chunkChildren, addr + 8, 4);
-		Chunk* chunk;
+		//Chunk* chunk;
 		switch (chunkID)
 		{
-		case 0x455A4953:
-			chunk = new SizeChunk(chunkContent + 12, addr);
+		case BOUNDINGBOX:
+			this->chunks.emplace_back(std::make_unique<SizeChunk>(
+				chunkContent + 12, addr));
+			//chunk = new SizeChunk(chunkContent + 12, addr);
 			break;
-		case 0x495A5958:
-			chunk = new XYZIChunk(chunkContent + 12, addr);
+		case VOXELDATA:
+			this->chunks.emplace_back(std::make_unique<XYZIChunk>(
+				chunkContent + 12, addr));
+			//chunk = new XYZIChunk(chunkContent + 12, addr);
 			break;
-		case 0x4B434150:
-			chunk = new PackChunk(chunkContent + 12, addr);
+		case ANIMDATA:
+			this->chunks.emplace_back(std::make_unique<PackChunk>(
+				chunkContent + 12, addr));
+			//chunk = new PackChunk(chunkContent + 12, addr);
 			break;
 		default:
-			chunk = new Chunk(chunkContent + 12, addr);
+			this->chunks.emplace_back(std::make_unique<Chunk>(
+				chunkContent + 12, addr));
+			//chunk = new Chunk(chunkContent + 12, addr);
 			break;
 		}
-		std::unique_ptr<Chunk> uChunk(chunk);
-		this->chunks.push_back(std::move(uChunk));
+		//std::unique_ptr<Chunk> uChunk(chunk);
+		//this->chunks.push_back(std::move(uChunk));
 		addr += (chunkContent + chunkChildren + 12);
 		std::cout << "Chunk Processed" << '\n';
 	}

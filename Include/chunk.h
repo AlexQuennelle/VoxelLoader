@@ -9,6 +9,8 @@ class Chunk
 {
 	public:
 	Chunk(uint32_t childrenOffset, char* bytes);
+
+	uint32_t ID;
 };
 
 class SizeChunk : public Chunk
