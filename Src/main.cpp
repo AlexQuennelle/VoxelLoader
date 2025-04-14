@@ -24,7 +24,7 @@ int main()
 	std::cin >> fileName;
 
 	// TODO: make this fancier later
-	if(!std::filesystem::exists(fileName))
+	if (!std::filesystem::exists(RESOURCES_PATH + fileName))
 	{
 		return -1;
 	}
