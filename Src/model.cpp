@@ -73,7 +73,7 @@ Model::Model(const std::string& filePath)
 		std::cout << this->version << '\n';
 
 		SetConsoleTextAttribute(hConsole, FOREGROUND_YELLOW);
-		ProcessChunks(&fileData[8]);
+		ProcessChunks(fileData + 8);
 
 		SetConsoleTextAttribute(hConsole, FOREGROUND_GREEN);
 		std::cout << "Load Successful!" << '\n';
@@ -89,16 +89,23 @@ Model::Model(const std::string& filePath)
 }
 void Model::ProcessChunks(char* bytes)
 {
-	char* endAddr = &bytes[*(bytes + 1) + *(bytes + 2) + 12];
+	uint32_t fileContent;
+	uint32_t fileChildren;
+	std::memcpy(&fileContent, bytes + 4, 4);
+	std::memcpy(&fileChildren, bytes + 8, 4);
+	char* endAddr = bytes + (fileContent + fileChildren + 12);
 	char* addr{bytes + 12};
+	//std::cout << std::hex << endAddr - bytes + 12;
 	while (addr < endAddr)
 	{
+		//std::cout << std::hex << addr - bytes + 8 << '\n';
 		uint32_t chunkID;
 		uint32_t chunkContent;
 		uint32_t chunkChildren;
 		std::memcpy(&chunkID, addr, 4);
 		std::memcpy(&chunkContent, addr + 4, 4);
 		std::memcpy(&chunkChildren, addr + 8, 4);
+		char* nextAddr = addr + (chunkContent + chunkChildren + 12);
 
 		switch (chunkID)
 		{
@@ -107,23 +114,28 @@ void Model::ProcessChunks(char* bytes)
 			uint32_t frameCount;
 			std::memcpy(&frameCount, addr + 12, 4);
 			this->frameCount = frameCount;
-			std::cout << this->frameCount << " frames of animation\n";
 			break;
 		case BOUNDINGBOX:
-			AddFrame(addr, addr + (chunkContent + chunkChildren + 12));
+			AddFrame(addr, nextAddr);
+			uint32_t nextContent;
+			uint32_t nextChildren;
+			std::memcpy(&nextContent, nextAddr + 4, 4);
+			std::memcpy(&nextChildren, nextAddr + 8, 4);
+			addr += (nextContent + nextChildren + 12);
 			break;
 		case VOXELDATA:
+			std::cout << "Skip" << '\n';
 			break;
 		default:
 			break;
 		}
-		std::cout << this->frameCount << '\n';
 		addr += (chunkContent + chunkChildren + 12);
 	}
 	std::cout << "Done processing chunks!" << '\n';
 }
 void Model::AddFrame(char* boundData, char* voxelData)
 {
+	std::cout << "New frame" << '\n';
 	Vector3Int bounds;
 	std::memcpy(&bounds, boundData + 12, 12);
 	uint32_t voxelCount;
