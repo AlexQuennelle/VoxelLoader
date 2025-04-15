@@ -1,6 +1,5 @@
 #pragma once
 
-#include "chunk.h"
 #include <array>
 #include <cstdint>
 #include <ostream>
@@ -11,6 +10,23 @@ namespace vxl
 {
 using std::array;
 
+struct Vector3Int
+{
+	public:
+	int32_t x, z, y;
+};
+struct Vector4Int
+{
+	uint8_t x, y, z, i;
+};
+
+struct AnimationFrame
+{
+	public:
+	Vector3Int bounds;
+	std::vector<Vector4Int> voxels;
+};
+
 class Model
 {
 	public:
@@ -18,10 +34,14 @@ class Model
 
 	array<char, 4> ID;
 	uint32_t version;
-	std::vector<std::unique_ptr<Chunk>> chunks;
+
+	std::vector<AnimationFrame> frames;
+	uint32_t frameCount{1};
+	uint32_t curFrame{0};
 
 	private:
 	void ProcessChunks(char* bytes);
+	void AddFrame(char* boundData, char* voxelData);
 };
 
 template <std::size_t N>

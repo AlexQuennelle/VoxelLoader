@@ -1,11 +1,9 @@
 #include "volume.h"
-#include "chunk.h"
 #include "model.h"
 
 #include <array>
 #include <cstdint>
 #include <cstring>
-#include <memory>
 #include <raylib.h>
 #include <vector>
 
@@ -63,34 +61,15 @@ std::array<uint32_t, 256> default_palette = {
 
 void DrawVolume(Model* model)
 {
-	std::vector<XYZIChunk*> frames;
-	std::vector<SizeChunk*> boundingBoxes;
-	for (uint32_t i{0}; i < model->chunks.size(); i++)
-	{
-		switch (model->chunks[i]->ID)
-		{
-		case BOUNDINGBOX:
-			boundingBoxes.push_back(
-				static_cast<SizeChunk*>(model->chunks[i].get()));
-			break;
-		case VOXELDATA:
-			frames.push_back(static_cast<XYZIChunk*>(model->chunks[i].get()));
-			break;
-		case ANIMDATA:
-			break;
-		default:
-			break;
-		}
-	}
-
-	for (auto voxel : frames[0]->voxels)
+	for (auto voxel : model->frames[model->curFrame].voxels)
 	{
 		std::array<uint8_t, 4> col;
-		std::memcpy(&col, &default_palette[voxel.I], 4);
-		DrawCube({static_cast<float>(voxel.X), static_cast<float>(voxel.Y),
-				  static_cast<float>(voxel.Z)},
+		std::memcpy(&col, &default_palette[voxel.i], 4);
+		DrawCube({static_cast<float>(voxel.x), static_cast<float>(voxel.y),
+				  static_cast<float>(voxel.z)},
 				 1.0f, 1.0f, 1.0f, {col[0], col[1], col[2], col[3]});
 	}
+	model->curFrame = (model->curFrame + 1) % model->frameCount;
 }
 
 } //namespace vxl

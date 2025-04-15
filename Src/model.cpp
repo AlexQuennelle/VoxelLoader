@@ -1,5 +1,4 @@
 #include "model.h"
-#include "chunk.h"
 
 #include <algorithm>
 #include <array>
@@ -9,8 +8,8 @@
 #include <ios>
 #include <iosfwd>
 #include <iostream>
-#include <memory>
 #include <string>
+#include <vector>
 #include <windows.h>
 #include <winnt.h>
 #include <winscard.h>
@@ -26,6 +25,21 @@ using std::ios;
 #define BOUNDINGBOX 0x455A4953
 #define VOXELDATA 0x495A5958
 #define ANIMDATA 0x4B434150
+
+std::ostream& operator<<(std::ostream& os, Vector3Int vec)
+{
+	os << '(' << static_cast<uint32_t>(vec.x) << ", "
+	   << static_cast<uint32_t>(vec.y) << ", " << static_cast<uint32_t>(vec.z)
+	   << ')';
+	return os;
+}
+std::ostream& operator<<(std::ostream& os, Vector4Int vec)
+{
+	os << '(' << static_cast<uint32_t>(vec.x) << ", "
+	   << static_cast<uint32_t>(vec.y) << ", " << static_cast<uint32_t>(vec.z)
+	   << ", " << static_cast<uint32_t>(vec.i) << ')';
+	return os;
+}
 
 Model::Model(const std::string& filePath)
 {
@@ -85,29 +99,47 @@ void Model::ProcessChunks(char* bytes)
 		std::memcpy(&chunkID, addr, 4);
 		std::memcpy(&chunkContent, addr + 4, 4);
 		std::memcpy(&chunkChildren, addr + 8, 4);
+
 		switch (chunkID)
 		{
+		case ANIMDATA:
+			// TODO: Fix animations
+			uint32_t frameCount;
+			std::memcpy(&frameCount, addr + 12, 4);
+			this->frameCount = frameCount;
+			std::cout << this->frameCount << " frames of animation\n";
+			break;
 		case BOUNDINGBOX:
-			this->chunks.emplace_back(
-				std::make_unique<SizeChunk>(chunkContent + 12, addr));
+			AddFrame(addr, addr + (chunkContent + chunkChildren + 12));
 			break;
 		case VOXELDATA:
-			this->chunks.emplace_back(
-				std::make_unique<XYZIChunk>(chunkContent + 12, addr));
-			break;
-		case ANIMDATA:
-			this->chunks.emplace_back(
-				std::make_unique<PackChunk>(chunkContent + 12, addr));
 			break;
 		default:
-			this->chunks.emplace_back(
-				std::make_unique<Chunk>(chunkContent + 12, addr));
 			break;
 		}
+		std::cout << this->frameCount << '\n';
 		addr += (chunkContent + chunkChildren + 12);
-		std::cout << "Chunk Processed" << '\n';
 	}
 	std::cout << "Done processing chunks!" << '\n';
+}
+void Model::AddFrame(char* boundData, char* voxelData)
+{
+	Vector3Int bounds;
+	std::memcpy(&bounds, boundData + 12, 12);
+	uint32_t voxelCount;
+	std::memcpy(&voxelCount, voxelData + 12, 4);
+	AnimationFrame frame{};
+	frame.bounds = bounds;
+	frame.voxels.reserve(voxelCount);
+	for (uint32_t i{0}; i < voxelCount; i++)
+	{
+		frame.voxels.push_back(
+			{.x = static_cast<uint8_t>(*(voxelData + 16 + (i * 4))),
+			 .y = static_cast<uint8_t>(*(voxelData + 18 + (i * 4))),
+			 .z = static_cast<uint8_t>(*(voxelData + 17 + (i * 4))),
+			 .i = static_cast<uint8_t>(*(voxelData + 19 + (i * 4)))});
+	}
+	this->frames.push_back(std::move(frame));
 }
 
 template <std::size_t N>
