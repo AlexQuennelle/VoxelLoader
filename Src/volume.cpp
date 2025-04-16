@@ -61,12 +61,14 @@ std::array<uint32_t, 256> default_palette = {
 
 void DrawVolume(Model* model)
 {
+	Vector3Int bounds = model->frames[model->curFrame].bounds;
 	for (auto voxel : model->frames[model->curFrame].voxels)
 	{
 		std::array<uint8_t, 4> col;
 		std::memcpy(&col, &default_palette[voxel.i], 4);
-		DrawCube({static_cast<float>(voxel.x), static_cast<float>(voxel.y),
-				  static_cast<float>(voxel.z)},
+		DrawCube({static_cast<float>(voxel.x - (bounds.x / 2)),
+				  static_cast<float>(voxel.y - (bounds.y / 2)),
+				  static_cast<float>(voxel.z - (bounds.z / 2))},
 				 1.0f, 1.0f, 1.0f, {col[0], col[1], col[2], col[3]});
 	}
 	model->curFrame = (model->curFrame + 1) % model->frameCount;
