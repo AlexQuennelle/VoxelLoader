@@ -38,6 +38,7 @@ class Model
 	std::vector<AnimationFrame> frames;
 	uint32_t frameCount{1};
 	uint32_t curFrame{0};
+	std::array<uint32_t, 256> palette{};
 
 	private:
 	void ProcessChunks(char* bytes);

@@ -1,9 +1,12 @@
 #include "model.h"
-#include "raylib.h"
 #include "volume.h"
+
+#include <algorithm>
 #include <cstring>
 #include <filesystem>
 #include <iostream>
+#include <raylib.h>
+#include <raymath.h>
 #include <string>
 
 int main()
@@ -33,7 +36,13 @@ int main()
 
 	vxl::Model model(RESOURCES_PATH + fileName);
 
-	Camera cam{{150.0f, 150.0f, 150.0f},
+	float dist =
+		std::max(model.frames[0].bounds.x, model.frames[0].bounds.y) * 2.0f;
+
+	Camera cam{Vector3RotateByAxisAngle(
+				   Vector3RotateByAxisAngle({dist, 0.0f, 0.0f},
+											{0.0f, 0.0f, 1.0f}, PI / 4.0f),
+				   {0.0f, 1.0f, 0.0f}, PI / 4.0f),
 			   {0.0f, 0.0f, 0.0f},
 			   {0.0f, 1.0f, 0.0f},
 			   45.0f,
@@ -43,6 +52,24 @@ int main()
 
 	while (!WindowShouldClose())
 	{
+		if (IsMouseButtonDown(MOUSE_BUTTON_LEFT))
+		{
+			Vector2 mouseDelta{GetMouseDelta()};
+			//mouseDelta.y *= std::pow(
+			//	1.0f - std::abs(Vector3DotProduct(
+			//			   Vector3Normalize(cam.position), {0.0f, 1.0f, 0.0f})),
+			//	2);
+
+			cam.position = Vector3RotateByAxisAngle(
+				cam.position, {0.0f, 1.0f, 0.0f}, -mouseDelta.x * 0.005f);
+			cam.position = Vector3RotateByAxisAngle(
+				cam.position,
+				Vector3CrossProduct(
+					Vector3Subtract({0.0f, 0.0f, 0.0f}, cam.position),
+					{0.0f, 1.0f, 0.0f}),
+				-mouseDelta.y * 0.01f);
+		}
+
 		BeginDrawing();
 
 		ClearBackground({100, 149, 237, 255});
@@ -51,6 +78,7 @@ int main()
 		vxl::DrawVolume(&model);
 
 		EndMode3D();
+		DrawFPS(0, 0);
 		EndDrawing();
 	}
 
