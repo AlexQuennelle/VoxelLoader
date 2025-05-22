@@ -95,6 +95,7 @@ Model::Model(const std::string& filePath)
 	std::streampos fSize;
 	char* fileData;
 
+	//attempt to open file
 	std::ifstream file(filePath.c_str(), ios::in | ios::binary | ios::ate);
 	SetConsoleTextAttribute(hConsole, FOREGROUND_YELLOW);
 	std::cout << '\n' << "Loading ";
@@ -102,16 +103,18 @@ Model::Model(const std::string& filePath)
 	std::cout << "\"" << filePath << "\"" << '\n';
 	if (file.is_open())
 	{
-		this->palette = default_palette;
 		SetConsoleTextAttribute(hConsole, FOREGROUND_YELLOW);
 
-		//Load file into memory
+		this->palette = default_palette;
+
+		//load file into memory
 		fSize = file.tellg();
 		fileData = new char[fSize];
 		file.seekg(0, ios::beg);
 		file.read(fileData, fSize);
 		file.close();
 
+		//copy file ID into model
 		std::copy(fileData, fileData + 4, this->ID.begin());
 		std::memcpy(&this->version, &fileData[4], 4);
 
@@ -121,11 +124,13 @@ Model::Model(const std::string& filePath)
 		std::cout << this->version << '\n';
 
 		SetConsoleTextAttribute(hConsole, FOREGROUND_YELLOW);
+		//send data to be processed
 		ProcessChunks(fileData + 8);
 
 		SetConsoleTextAttribute(hConsole, FOREGROUND_GREEN);
 		std::cout << "Load Successful!" << '\n';
 
+		//clear memory
 		delete[] fileData;
 	}
 	else
@@ -137,12 +142,16 @@ Model::Model(const std::string& filePath)
 }
 void Model::ProcessChunks(char* bytes)
 {
+	//set up some utility variables
+	//these are used to iterate through the data correctly
 	uint32_t fileContent;
 	uint32_t fileChildren;
 	std::memcpy(&fileContent, bytes + 4, 4);
 	std::memcpy(&fileChildren, bytes + 8, 4);
 	char* endAddr = bytes + (fileContent + fileChildren + 12);
 	char* addr{bytes + 12};
+	//custom iterator
+	//step through the block of raw bytes according to the chunk information
 	while (addr < endAddr)
 	{
 		uint32_t chunkID;
@@ -156,7 +165,6 @@ void Model::ProcessChunks(char* bytes)
 		switch (chunkID)
 		{
 		case ANIMDATA:
-			// TODO: Fix animations
 			uint32_t frameCount;
 			std::memcpy(&frameCount, addr + 12, 4);
 			this->frameCount = frameCount;
