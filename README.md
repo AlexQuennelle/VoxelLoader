@@ -3,15 +3,20 @@
 1. Make a file called build.bat that contains the following batch script:
 ```
 @echo off
+set buildType=%1
+if "%~1" == "" set /p buildType="Build Type: "
 echo Generating CMake files
 for %%a in ("%~dp0\.") do set "parent=%%~nxa"
 if not exist "Build" mkdir Build
+if not exist "Bin" mkdir Bin
 cd Build
-cmake ../ -G "Unix Makefiles"
+cmake -D CMAKE_BUILD_TYPE=%buildType% ../ -G "Unix Makefiles"
 
 echo Building Executable
 make
+cd ../Bin
 start %parent%
+pause
 exit
 ```
 3. Put that file in the root folder next to the CMakeLists.txt
