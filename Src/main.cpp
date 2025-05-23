@@ -14,7 +14,7 @@
 #include <random>
 #endif //  defined ()
 
-void UpdateLoop();
+void Update();
 
 Camera cam;
 vxl::Model* model;
@@ -37,6 +37,8 @@ int main()
 		std::uniform_int_distribution<> random(0, files.size() - 1);
 		fileName = files[random(gen)];
 	}
+
+	InitWindow(400, 400, NAME);
 #else
 	std::cout << "Chose a file to load\n\n";
 	{
@@ -59,10 +61,9 @@ int main()
 		std::cout << RESOURCES_PATH << fileName << " does not exist\n";
 		return -1;
 	}
-#endif
 
 	InitWindow(800, 800, NAME);
-
+#endif
 	model = new vxl::Model(RESOURCES_PATH + fileName);
 
 	float dist =
@@ -73,7 +74,7 @@ int main()
 		cam = *new Camera({.position = Vector3RotateByAxisAngle(
 							   Vector3RotateByAxisAngle({dist, 0.0f, 0.0f},
 														{0.0f, 0.0f, 1.0f},
-														pi_v<float> / 4.0f),
+														pi_v<float> / 12.0f),
 							   {0.0f, 1.0f, 0.0f}, pi_v<float> / 4.0f),
 						   .target = {0.0f, 0.0f, 0.0f},
 						   .up = {0.0f, 1.0f, 0.0f},
@@ -82,13 +83,13 @@ int main()
 	}
 
 #if defined(PLATFORM_WEB)
-	emscripten_set_main_loop(UpdateLoop, 0, 1);
+	emscripten_set_main_loop(Update, 0, 1);
 #else
 	SetTargetFPS(60);
 
 	while (!WindowShouldClose())
 	{
-		UpdateLoop();
+		Update();
 	}
 #endif
 
@@ -98,20 +99,32 @@ int main()
 	return 0;
 }
 
-void UpdateLoop()
+void Update()
 {
+	float dt = GetFrameTime();
 	if (IsMouseButtonDown(MOUSE_BUTTON_LEFT))
 	{
 		Vector2 mouseDelta{GetMouseDelta()};
 
 		cam.position = Vector3RotateByAxisAngle(
-			cam.position, {0.0f, 1.0f, 0.0f}, -mouseDelta.x * 0.005f);
+			cam.position, {0.0f, 1.0f, 0.0f}, -mouseDelta.x * 0.25f * dt);
+		float dAngle = -mouseDelta.y * 0.5 * dt;
+		float currentAngle =
+			Vector3Angle(Vector3Normalize(cam.position), {0.0f, 1.0f, 0.0f});
+		if (currentAngle + dAngle > 175.0f * DEG2RAD)
+		{
+			dAngle -= (currentAngle + dAngle) - (175.0f * DEG2RAD);
+		}
+		else if (currentAngle + dAngle < 5.0f * DEG2RAD)
+		{
+			dAngle += (5.0f * DEG2RAD) - (currentAngle + dAngle);
+		}
 		cam.position = Vector3RotateByAxisAngle(
 			cam.position,
 			Vector3CrossProduct(
 				Vector3Subtract({0.0f, 0.0f, 0.0f}, cam.position),
 				{0.0f, 1.0f, 0.0f}),
-			-mouseDelta.y * 0.01f);
+			dAngle);
 	}
 
 	BeginDrawing();
