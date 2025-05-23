@@ -38,22 +38,31 @@ if (NOT raylib_FOUND) # If there's none, fetch and build raylib
   endif()
 endif()
 
-include(FetchContent)
-
-FetchContent_Declare(
-  yaml-cpp
-  GIT_REPOSITORY https://github.com/jbeder/yaml-cpp.git
-  GIT_TAG 2f86d13
-)
-FetchContent_MakeAvailable(yaml-cpp)
-
 file(GLOB_RECURSE MY_SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/Src/*.cpp")
 
 add_executable("${CMAKE_PROJECT_NAME}") 
+if(EMSCRIPTEN)
+	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --shell-file ${CMAKE_CURRENT_SOURCE_DIR}/Src/template.html")
+	set_target_properties(${CMAKE_PROJECT_NAME} PROPERTIES OUTPUT_NAME "index")
+	file(GLOB_RECURSE MODELS CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/Resources/*.vox")
+	foreach(MODEL ${MODELS})
+		get_filename_component(TRIMMED ${MODEL} NAME)
+		set_target_properties(
+			${CMAKE_PROJECT_NAME} PROPERTIES LINK_FLAGS
+			"--preload-file ../Resources/${TRIMMED}@./Resources/${TRIMMED}"
+		)
+	endforeach()
+	set(CMAKE_EXECUTABLE_SUFFIX ".html")
+	set_target_properties(
+		${CMAKE_PROJECT_NAME} PROPERTIES LINK_FLAGS
+		"--preload-file ../Resources@./Resources"
+	)
+endif()
 target_compile_definitions(
 	${CMAKE_PROJECT_NAME}
 	PUBLIC
 	$<$<CONFIG:Release>:PRODUCTION_BUILD>
+	NAME="${CMAKE_PROJECT_NAME}"
 )
 
 set_target_properties("${CMAKE_PROJECT_NAME}" PROPERTIES
@@ -73,15 +82,17 @@ target_compile_features("${CMAKE_PROJECT_NAME}" PRIVATE cxx_std_20)
 
 target_sources("${CMAKE_PROJECT_NAME}" PRIVATE ${MY_SOURCES} )
 
-target_link_libraries(${PROJECT_NAME} raylib yaml-cpp::yaml-cpp)
+target_link_libraries(${PROJECT_NAME} raylib)
 
 target_include_directories("${CMAKE_PROJECT_NAME}" PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/Include/")
 target_include_directories("${CMAKE_PROJECT_NAME}" PUBLIC "${PROJECT_BINARY_DIR}")
 
-add_custom_command(
+if(NOT EMSCRIPTEN)
+	add_custom_command(
 	TARGET ${CMAKE_PROJECT_NAME}
 	POST_BUILD
 	COMMAND ${CMAKE_COMMAND} -E copy_directory
 	"${CMAKE_CURRENT_SOURCE_DIR}/Resources"
 	$<IF:$<CONFIG:Release>,"${CMAKE_CURRENT_SOURCE_DIR}/Bin/${CMAKE_PROJECT_NAME}_${CMAKE_PROJECT_VERSION}/Resources/","${CMAKE_CURRENT_SOURCE_DIR}/Resources/">
-)
+	)
+endif()
