@@ -16,7 +16,7 @@ endif()
 add_compile_options("$<$<COMPILE_LANGUAGE:CXX>:-O3;-ffast-math>")
 
 # Change this to match the name of the current folder
-project(VoxelLoader LANGUAGES CXX C VERSION 0.0)
+project(VoxelLoader LANGUAGES CXX C VERSION 1.0)
 option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
 
 message("Build type: ${CMAKE_BUILD_TYPE}")
@@ -71,6 +71,13 @@ set_target_properties("${CMAKE_PROJECT_NAME}" PROPERTIES
 					  RUNTIME_OUTPUT_DIRECTORY_RELEASE
 					  "${CMAKE_CURRENT_SOURCE_DIR}/Bin/${CMAKE_PROJECT_NAME}_${CMAKE_PROJECT_VERSION}"
 )
+if(EMSCRIPTEN)
+	set_target_properties(
+		${CMAKE_PROJECT_NAME} PROPERTIES
+		RUNTIME_OUTPUT_DIRECTORY_RELEASE
+		"${CMAKE_CURRENT_SOURCE_DIR}/Bin/${CMAKE_PROJECT_NAME}_${CMAKE_PROJECT_VERSION}_web"
+	)
+endif()
 
 target_compile_definitions(
 	${CMAKE_PROJECT_NAME}
