@@ -83,8 +83,8 @@ int main()
 	std::cout << "Radius: " << rad << '\n';
 	float dist = rad * (std::sin(DEG2RAD * 90) / std::sin(DEG2RAD * (fov / 2)));
 	std::cout << "Distance: " << dist << '\n';
-	camSpeed = {0.36f - std::pow(dist * (1.0f / 25000.0f), 1.0f / 3.5f),
-				0.97f - std::pow(dist * 1.0f / 500.0f, 1.0f / 5.0f)};
+	camSpeed = {.x = 0.36f - std::pow(dist * (1.0f / 25000.0f), 1.0f / 3.5f),
+				.y = 0.97f - std::pow(dist * 1.0f / 500.0f, 1.0f / 5.0f)};
 	std::cout << "Camera rotation speed: (" << camSpeed.x << ", " << camSpeed.y
 			  << ")\n";
 
