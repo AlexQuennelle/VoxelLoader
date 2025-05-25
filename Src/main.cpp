@@ -2,6 +2,7 @@
 #include "volume.h"
 
 #include <algorithm>
+#include <cmath>
 #include <cstring>
 #include <filesystem>
 #include <iostream>
@@ -18,6 +19,7 @@ void Update();
 
 Camera cam;
 vxl::Model* model;
+Vector2 camSpeed;
 
 int main()
 {
@@ -66,8 +68,25 @@ int main()
 #endif
 	model = new vxl::Model(RESOURCES_PATH + fileName);
 
-	float dist =
-		std::max(model->frames[0].bounds.x, model->frames[0].bounds.y) * 2.0f;
+	float vFOV = 45.0f;
+	float aspectRatio = static_cast<float>(GetScreenWidth()) /
+						static_cast<float>(GetScreenHeight());
+	std::cout << "Aspect Ratio: " << aspectRatio << '\n';
+	float fov =
+		std::min(vFOV, RAD2DEG * (2 * std::atan(std::tan((DEG2RAD * vFOV) / 2) *
+												aspectRatio)));
+	std::cout << "FOV: " << fov << '\n';
+	auto mBounds = Vector3(model->frames[0].bounds.x, model->frames[0].bounds.y,
+						   model->frames[0].bounds.z);
+	float rad =
+		sqrt((pow(mBounds.x, 2) + pow(mBounds.y, 2)) + pow(mBounds.z, 2)) / 2;
+	std::cout << "Radius: " << rad << '\n';
+	float dist = rad * (std::sin(DEG2RAD * 90) / std::sin(DEG2RAD * (fov / 2)));
+	std::cout << "Distance: " << dist << '\n';
+	camSpeed = {0.36f - std::pow(dist * (1.0f / 25000.0f), 1.0f / 3.5f),
+				0.97f - std::pow(dist * 1.0f / 500.0f, 1.0f / 5.0f)};
+	std::cout << "Camera rotation speed: (" << camSpeed.x << ", " << camSpeed.y
+			  << ")\n";
 
 	{
 		using namespace std::numbers;
@@ -78,7 +97,7 @@ int main()
 							   {0.0f, 1.0f, 0.0f}, pi_v<float> / 4.0f),
 						   .target = {0.0f, 0.0f, 0.0f},
 						   .up = {0.0f, 1.0f, 0.0f},
-						   .fovy = 45.0f,
+						   .fovy = vFOV,
 						   .projection = 0});
 	}
 
@@ -107,8 +126,8 @@ void Update()
 		Vector2 mouseDelta{GetMouseDelta()};
 
 		cam.position = Vector3RotateByAxisAngle(
-			cam.position, {0.0f, 1.0f, 0.0f}, -mouseDelta.x * 0.25f * dt);
-		float dAngle = -mouseDelta.y * 0.5 * dt;
+			cam.position, {0.0f, 1.0f, 0.0f}, -mouseDelta.x * camSpeed.x * dt);
+		float dAngle = -mouseDelta.y * camSpeed.y * dt;
 		float currentAngle =
 			Vector3Angle(Vector3Normalize(cam.position), {0.0f, 1.0f, 0.0f});
 		if (currentAngle + dAngle > 175.0f * DEG2RAD)
