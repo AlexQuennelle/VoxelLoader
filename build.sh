@@ -1,0 +1,22 @@
+read -p "Build type: " buildType
+mkdir -p bin
+if [[ "${buildType/w/W}" = "Web" ]]; then
+	mkdir -p build.web
+	cd build.web
+	emcmake cmake -DCMAKE_BUILD_TYPE=Release -DPLATFORM=Web ..
+	emmake make
+	cd ..
+	exit
+elif [[ "${buildType^}" != "Debug" && "${buildType^} != Release" ]]; then
+	buildType="Debug"
+fi
+mkdir -p build
+cd build
+cmake -DCMAKE_BUILD_TYPE="${buildType^}" .. -G "Unix Makefiles"
+make
+cd ..
+if [[ "${buildType^}" = "Debug" ]]; then
+	cd bin
+	./$(basename $(dirname $PWD))
+fi
+exit
