@@ -71,22 +71,16 @@ int main()
 	float vFOV = 45.0f;
 	float aspectRatio = static_cast<float>(GetScreenWidth()) /
 						static_cast<float>(GetScreenHeight());
-	std::cout << "Aspect Ratio: " << aspectRatio << '\n';
 	float fov =
 		std::min(vFOV, RAD2DEG * (2 * std::atan(std::tan((DEG2RAD * vFOV) / 2) *
 												aspectRatio)));
-	std::cout << "FOV: " << fov << '\n';
 	auto mBounds = Vector3(model->frames[0].bounds.x, model->frames[0].bounds.y,
 						   model->frames[0].bounds.z);
 	float rad =
 		sqrt((pow(mBounds.x, 2) + pow(mBounds.y, 2)) + pow(mBounds.z, 2)) / 2;
-	std::cout << "Radius: " << rad << '\n';
 	float dist = rad * (std::sin(DEG2RAD * 90) / std::sin(DEG2RAD * (fov / 2)));
-	std::cout << "Distance: " << dist << '\n';
 	camSpeed = {.x = 0.36f - std::pow(dist * (1.0f / 25000.0f), 1.0f / 3.5f),
 				.y = 0.97f - std::pow(dist * 1.0f / 500.0f, 1.0f / 5.0f)};
-	std::cout << "Camera rotation speed: (" << camSpeed.x << ", " << camSpeed.y
-			  << ")\n";
 
 	{
 		using namespace std::numbers;

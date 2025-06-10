@@ -1,4 +1,5 @@
 #include "model.h"
+#include "utils.h"
 
 #include <algorithm>
 #include <array>
@@ -11,14 +12,6 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#if defined(APLATFORM_DESKTOP)
-namespace win
-{
-#include <windows.h>
-#include <winnt.h>
-#include <winscard.h>
-} //namespace win
-#endif // _WIN32
 
 namespace vxl
 {
@@ -95,30 +88,16 @@ std::ostream& operator<<(std::ostream& os, Vector4Int vec)
 
 Model::Model(const std::string& filePath)
 {
-#if defined(APLATFORM_DESKTOP)
-	using win::HANDLE;
-	HANDLE hConsole = win::GetStdHandle(((win::DWORD)-11));
-#endif
-
 	std::streampos fSize;
 	char* fileData;
 
-	//attempt to open file
 	std::ifstream file(filePath.c_str(), ios::in | ios::binary | ios::ate);
-#if defined(APLATFORM_DESKTOP)
-	win::SetConsoleTextAttribute(hConsole, FOREGROUND_YELLOW);
-#endif
+	SetTextColor(INFO);
 	std::cout << '\n' << "Loading ";
-#if defined(APLATFORM_DESKTOP)
-	win::SetConsoleTextAttribute(hConsole, FOREGROUND_GREY);
-#endif
+	SetTextColor({0,240,255,0});
 	std::cout << "\"" << filePath << "\"" << '\n';
 	if (file.is_open())
 	{
-#if defined(APLATFORM_DESKTOP)
-		win::SetConsoleTextAttribute(hConsole, FOREGROUND_YELLOW);
-#endif
-
 		this->palette = default_palette;
 
 		//load file into memory
@@ -132,22 +111,18 @@ Model::Model(const std::string& filePath)
 		std::copy(fileData, fileData + 4, this->ID.begin());
 		std::memcpy(&this->version, &fileData[4], 4);
 
+		SetTextColor(SUCCESS);
 		std::cout << this->ID << "file found:" << '\n';
+		SetTextColor(INFO);
 		std::cout << "Version: ";
-#if defined(APLATFORM_DESKTOP)
-		win::SetConsoleTextAttribute(hConsole, FOREGROUND_WHITE);
-#endif
+		ClearStyles();
 		std::cout << this->version << '\n';
 
-#if defined(APLATFORM_DESKTOP)
-		win::SetConsoleTextAttribute(hConsole, FOREGROUND_YELLOW);
-#endif
+		SetTextColor(INFO);
 		//send data to be processed
 		ProcessChunks(fileData + 8);
 
-#if defined(APLATFORM_DESKTOP)
-		win::SetConsoleTextAttribute(hConsole, FOREGROUND_GREEN);
-#endif
+		SetTextColor(SUCCESS);
 		std::cout << "Load Successful!" << '\n';
 
 		//clear memory
@@ -155,18 +130,13 @@ Model::Model(const std::string& filePath)
 	}
 	else
 	{
-#if defined(APLATFORM_DESKTOP)
-		win::SetConsoleTextAttribute(hConsole, FOREGROUND_RED);
-#endif
+		SetTextColor(ERROR);
 		std::cout << "Unable to open " << filePath << '\n';
 	}
-#if defined(APLATFORM_DESKTOP)
-	win::SetConsoleTextAttribute(hConsole, FOREGROUND_WHITE);
-#endif
+	ClearStyles();
 }
 void Model::ProcessChunks(char* bytes)
 {
-	//set up some utility variables
 	//these are used to iterate through the data correctly
 	uint32_t fileContent;
 	uint32_t fileChildren;
