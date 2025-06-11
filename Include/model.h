@@ -5,10 +5,12 @@
 #include <ostream>
 #include <string>
 #include <vector>
+#include <raylib.h>
 
 namespace vxl
 {
 using std::array;
+using std::vector;
 
 struct Vector3Int
 {
@@ -20,25 +22,42 @@ struct Vector4Int
 	uint8_t x, y, z, i;
 };
 
+class vxlMesh
+{
+	public:
+	vxlMesh(vector<float> verts, vector<uint8_t> cols, vector<float> normals,
+		 vector<uint16_t> indices, uint32_t triCount);
+
+	void Draw();
+
+	private:
+	Mesh raymesh;
+	vector<uint16_t> indices;
+	vector<uint8_t> cols;
+	vector<float> normals;
+	vector<float> verts;
+};
+
 struct AnimationFrame
 {
 	public:
 	Vector3Int bounds;
-	std::vector<Vector4Int> voxels;
+	vector<Vector4Int> voxels;
+	vxlMesh mesh;
 };
 
-class Model
+class vxlModel
 {
 	public:
-	Model(const std::string& filePath);
+	vxlModel(const std::string& filePath);
 
 	array<char, 4> ID;
 	uint32_t version;
 
-	std::vector<AnimationFrame> frames;
+	vector<AnimationFrame> frames;
 	uint32_t frameCount{1};
 	uint32_t curFrame{0};
-	std::array<uint32_t, 256> palette{};
+	array<uint32_t, 256> palette{};
 
 	private:
 	void ProcessChunks(char* bytes);
@@ -46,6 +65,6 @@ class Model
 };
 
 template <std::size_t N>
-std::ostream& operator<<(std::ostream& os, const std::array<char, N>& data);
+std::ostream& operator<<(std::ostream& os, const array<char, N>& data);
 
 } //namespace vxl

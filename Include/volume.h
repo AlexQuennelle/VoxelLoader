@@ -5,6 +5,6 @@
 namespace vxl
 {
 
-void DrawVolume(Model* model);
+void DrawVolume(vxlModel* model);
 
 }

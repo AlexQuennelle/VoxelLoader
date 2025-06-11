@@ -18,7 +18,7 @@
 void Update();
 
 Camera cam;
-vxl::Model* model;
+vxl::vxlModel* model;
 Vector2 camSpeed;
 
 int main()
@@ -53,9 +53,10 @@ int main()
 		}
 	}
 	std::string fileName;
-	std::cout << '\n';
-	std::cout << "Enter file name: ";
-	std::cin >> fileName;
+	//std::cout << '\n';
+	//std::cout << "Enter file name: ";
+	//std::cin >> fileName;
+	fileName = "A.vox";
 
 	// TODO: make this fancier later
 	if (!std::filesystem::exists(RESOURCES_PATH + fileName))
@@ -66,7 +67,7 @@ int main()
 
 	InitWindow(800, 800, NAME);
 #endif
-	model = new vxl::Model(RESOURCES_PATH + fileName);
+	model = new vxl::vxlModel(RESOURCES_PATH + fileName);
 
 	float vFOV = 45.0f;
 	float aspectRatio = static_cast<float>(GetScreenWidth()) /

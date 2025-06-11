@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <array>
+#include <cstddef>
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
@@ -10,8 +11,10 @@
 #include <ios>
 #include <iosfwd>
 #include <iostream>
+#include <raylib.h>
+#include <raymath.h>
 #include <string>
-#include <vector>
+#include <utility>
 
 namespace vxl
 {
@@ -26,6 +29,7 @@ using std::ios;
 #define ANIMDATA 0x4B434150
 #define RGBA 0x41424752
 
+Shader shader{};
 std::array<uint32_t, 256> default_palette = {
 	0x00000000, 0xffffffff, 0xffccffff, 0xff99ffff, 0xff66ffff, 0xff33ffff,
 	0xff00ffff, 0xffffccff, 0xffccccff, 0xff99ccff, 0xff66ccff, 0xff33ccff,
@@ -86,15 +90,45 @@ std::ostream& operator<<(std::ostream& os, Vector4Int vec)
 	return os;
 }
 
-Model::Model(const std::string& filePath)
+vxlMesh::vxlMesh(vector<float> verts, vector<uint8_t> cols,
+				 vector<float> normals, vector<uint16_t> indices,
+				 uint32_t triCount)
+{
+	this->indices = std::move(indices);
+	this->cols = std::move(cols);
+	this->normals = std::move(normals);
+	this->verts = std::move(verts);
+	this->raymesh = Mesh();
+
+	this->raymesh.triangleCount = triCount;
+	this->raymesh.vertices = verts.data();
+	this->raymesh.normals = normals.data();
+	this->raymesh.colors = cols.data();
+	this->raymesh.indices = indices.data();
+	this->raymesh.vertexCount = 3;
+}
+//Material mat{shader};
+void vxlMesh::Draw()
+{
+	Model model = LoadModelFromMesh(GenMeshCube(1,1,1));
+	BeginShaderMode(shader);
+	DrawModel(model, {0,0,0}, 1, WHITE);
+	//DrawCube({0,0,0},1,1,1,WHITE);
+	EndShaderMode();
+	UnloadModel(model);
+}
+
+vxlModel::vxlModel(const std::string& filePath)
 {
 	std::streampos fSize;
 	char* fileData;
 
+	shader = LoadShader(RESOURCES_PATH "shaders/test.vert",
+						RESOURCES_PATH "shaders/test.frag");
 	std::ifstream file(filePath.c_str(), ios::in | ios::binary | ios::ate);
 	SetTextColor(INFO);
 	std::cout << '\n' << "Loading ";
-	SetTextColor({0,240,255,0});
+	SetTextColor({0, 240, 255, 0});
 	std::cout << "\"" << filePath << "\"" << '\n';
 	if (file.is_open())
 	{
@@ -135,7 +169,7 @@ Model::Model(const std::string& filePath)
 	}
 	ClearStyles();
 }
-void Model::ProcessChunks(char* bytes)
+void vxlModel::ProcessChunks(char* bytes)
 {
 	//these are used to iterate through the data correctly
 	uint32_t fileContent;
@@ -182,14 +216,35 @@ void Model::ProcessChunks(char* bytes)
 	}
 	std::cout << "Done processing chunks!" << '\n';
 }
-void Model::AddFrame(char* boundData, char* voxelData)
+void vxlModel::AddFrame(char* boundData, char* voxelData)
 {
 	std::cout << "New frame" << '\n';
 	Vector3Int bounds;
 	std::memcpy(&bounds, boundData + 12, 12);
 	uint32_t voxelCount;
 	std::memcpy(&voxelCount, voxelData + 12, 4);
-	AnimationFrame frame{};
+
+	int32_t voxVolume{bounds.x * bounds.y * bounds.z};
+	vector<uint8_t> volume;
+	volume.reserve(voxVolume);
+
+	for (uint32_t i{0}; i < voxelCount; i++)
+	{
+		auto x = static_cast<uint8_t>(*(voxelData + 16 + (i * 4)));
+		auto y = static_cast<uint8_t>(*(voxelData + 18 + (i * 4)));
+		auto z = static_cast<uint8_t>(*(voxelData + 17 + (i * 4)));
+		uint32_t index = x * bounds.z * bounds.y + z * bounds.y + y;
+		volume[index] = static_cast<uint8_t>(*(voxelData + 19 + (i * 4)));
+	}
+
+	std::vector<float> verts{1.0f, 1.0f,  0.0f,	 -1.0f, 1.0f,
+							 0.0f, -1.0f, -1.0f, 0.0f};
+	std::vector<uint8_t> cols{255, 0, 0, 255, 0, 255, 0, 255, 0, 0, 255, 0};
+	std::vector<float> nors{0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
+							1.0f, 0.0f, 0.0f, 1.0f};
+	vxlMesh mesh{verts, cols, nors, {0, 1, 2}, 1};
+
+	AnimationFrame frame{.mesh = mesh};
 	frame.bounds = bounds;
 	frame.voxels.reserve(voxelCount);
 	for (uint32_t i{0}; i < voxelCount; i++)
@@ -200,6 +255,7 @@ void Model::AddFrame(char* boundData, char* voxelData)
 			 .z = static_cast<uint8_t>(*(voxelData + 17 + (i * 4))),
 			 .i = static_cast<uint8_t>(*(voxelData + 19 + (i * 4)))});
 	}
+
 	this->frames.push_back(std::move(frame));
 }
 
