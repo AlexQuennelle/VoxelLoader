@@ -12,5 +12,5 @@ out vec4 finalColor;
 
 void main()
 {
-	finalColor = fragColor;
+    finalColor = vec4(fragNormal, 1.0f);
 }

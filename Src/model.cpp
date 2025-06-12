@@ -14,7 +14,6 @@
 #include <raylib.h>
 #include <raymath.h>
 #include <string>
-#include <utility>
 
 namespace vxl
 {
@@ -29,7 +28,6 @@ using std::ios;
 #define ANIMDATA 0x4B434150
 #define RGBA 0x41424752
 
-Shader shader{};
 std::array<uint32_t, 256> default_palette = {
 	0x00000000, 0xffffffff, 0xffccffff, 0xff99ffff, 0xff66ffff, 0xff33ffff,
 	0xff00ffff, 0xffffccff, 0xffccccff, 0xff99ccff, 0xff66ccff, 0xff33ccff,
@@ -95,8 +93,6 @@ vxlModel::vxlModel(const std::string& filePath)
 	std::streampos fSize;
 	char* fileData;
 
-	shader = LoadShader(RESOURCES_PATH "shaders/test.vert",
-						RESOURCES_PATH "shaders/test.frag");
 	std::ifstream file(filePath.c_str(), ios::in | ios::binary | ios::ate);
 	SetTextColor(INFO);
 	std::cout << '\n' << "Loading ";

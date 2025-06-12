@@ -16,7 +16,7 @@ uint8_t renderedFrames{0};
 #define VOXELDATA 0x495A5958
 #define ANIMDATA 0x4B434150
 
-void DrawVolume(vxlModel* vxlmodel)
+void DrawVolume(vxlModel* vxlmodel, Shader* shader)
 {
 	//Vector3Int bounds = model->frames[model->curFrame].bounds;
 	//for (auto voxel : model->frames[model->curFrame].voxels)
@@ -31,6 +31,7 @@ void DrawVolume(vxlModel* vxlmodel)
 
 	//UploadMesh(&vxlmodel->meshes[0], false);
 	Model model = LoadModelFromMesh(vxlmodel->meshes[0]);
+	model.materials->shader = *shader;
 	DrawModel(model, {0.0f, 0.0f, 0.0f}, 1.0f, WHITE);
 	//DrawModel(model->frames[model->curFrame], {0.0f, 0.0f, 0.0f}, 1.0f,
 	//WHITE);

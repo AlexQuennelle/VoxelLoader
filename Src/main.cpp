@@ -20,6 +20,7 @@ void Update();
 Camera cam;
 vxl::vxlModel* model;
 Vector2 camSpeed;
+Shader shader;
 
 int main()
 {
@@ -67,6 +68,8 @@ int main()
 
 	InitWindow(800, 800, NAME);
 #endif
+	shader = LoadShader(RESOURCES_PATH "shaders/test.vert",
+					 RESOURCES_PATH "shaders/test.frag");
 	model = new vxl::vxlModel(RESOURCES_PATH + fileName);
 
 	float vFOV = 45.0f;
@@ -147,7 +150,7 @@ void Update()
 	ClearBackground({100, 149, 237, 255});
 	BeginMode3D(cam);
 
-	vxl::DrawVolume(model);
+	vxl::DrawVolume(model, &shader);
 
 	EndMode3D();
 	DrawFPS(0, 0);
