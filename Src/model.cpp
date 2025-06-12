@@ -90,34 +90,6 @@ std::ostream& operator<<(std::ostream& os, Vector4Int vec)
 	return os;
 }
 
-vxlMesh::vxlMesh(vector<float> verts, vector<uint8_t> cols,
-				 vector<float> normals, vector<uint16_t> indices,
-				 uint32_t triCount)
-{
-	this->indices = std::move(indices);
-	this->cols = std::move(cols);
-	this->normals = std::move(normals);
-	this->verts = std::move(verts);
-	this->raymesh = Mesh();
-
-	this->raymesh.triangleCount = triCount;
-	this->raymesh.vertices = verts.data();
-	this->raymesh.normals = normals.data();
-	this->raymesh.colors = cols.data();
-	this->raymesh.indices = indices.data();
-	this->raymesh.vertexCount = 3;
-}
-//Material mat{shader};
-void vxlMesh::Draw()
-{
-	Model model = LoadModelFromMesh(GenMeshCube(1,1,1));
-	BeginShaderMode(shader);
-	DrawModel(model, {0,0,0}, 1, WHITE);
-	//DrawCube({0,0,0},1,1,1,WHITE);
-	EndShaderMode();
-	UnloadModel(model);
-}
-
 vxlModel::vxlModel(const std::string& filePath)
 {
 	std::streampos fSize;
@@ -237,14 +209,148 @@ void vxlModel::AddFrame(char* boundData, char* voxelData)
 		volume[index] = static_cast<uint8_t>(*(voxelData + 19 + (i * 4)));
 	}
 
-	std::vector<float> verts{1.0f, 1.0f,  0.0f,	 -1.0f, 1.0f,
-							 0.0f, -1.0f, -1.0f, 0.0f};
-	std::vector<uint8_t> cols{255, 0, 0, 255, 0, 255, 0, 255, 0, 0, 255, 0};
-	std::vector<float> nors{0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
-							1.0f, 0.0f, 0.0f, 1.0f};
-	vxlMesh mesh{verts, cols, nors, {0, 1, 2}, 1};
+	Mesh mesh;
+	vector<float> verts{
+		0.0f, 0.0f, 1.0f,
+		1.0f, 0.0f, 1.0f,
+		1.0f, 1.0f, 1.0f,
+		0.0f, 1.0f, 1.0f,
+		0.0f, 0.0f, 0.0f,
+		0.0f, 1.0f, 0.0f,
+		1.0f, 1.0f, 0.0f,
+		1.0f, 0.0f, 0.0f,
+		0.0f, 1.0f, 0.0f,
+		0.0f, 1.0f, 1.0f,
+		1.0f, 1.0f, 1.0f,
+		1.0f, 1.0f, 0.0f,
+		0.0f, 0.0f, 0.0f,
+		1.0f, 0.0f, 0.0f,
+		1.0f, 0.0f, 1.0f,
+		0.0f, 0.0f, 1.0f,
+		1.0f, 0.0f, 0.0f,
+		1.0f, 1.0f, 0.0f,
+		1.0f, 1.0f, 1.0f,
+		1.0f, 0.0f, 1.0f,
+		0.0f, 0.0f, 0.0f,
+		0.0f, 0.0f, 1.0f,
+		0.0f, 1.0f, 1.0f,
+		0.0f, 1.0f, 0.0f
+	};
+	vector<float> uv{
+		0.0f, 0.0f,
+		1.0f, 0.0f,
+		1.0f, 1.0f,
+		0.0f, 1.0f,
+		1.0f, 0.0f,
+		1.0f, 1.0f,
+		0.0f, 1.0f,
+		0.0f, 0.0f,
+		0.0f, 1.0f,
+		0.0f, 0.0f,
+		1.0f, 0.0f,
+		1.0f, 1.0f,
+		1.0f, 1.0f,
+		0.0f, 1.0f,
+		0.0f, 0.0f,
+		1.0f, 0.0f,
+		1.0f, 0.0f,
+		1.0f, 1.0f,
+		0.0f, 1.0f,
+		0.0f, 0.0f,
+		0.0f, 0.0f,
+		1.0f, 0.0f,
+		1.0f, 1.0f,
+		0.0f, 1.0f
+	};
+	vector<uint8_t> cols{
+		255, 0, 0, 255,
+		0, 255, 0, 255,
+		0, 0, 255, 255,
+		255, 0, 0, 255,
+		0, 255, 0, 255,
+		0, 0, 255, 255,
+		255, 0, 0, 255,
+		0, 255, 0, 255,
+		0, 0, 255, 255,
+		255, 0, 0, 255,
+		0, 255, 0, 255,
+		0, 0, 255, 255,
+		255, 0, 0, 255,
+		0, 255, 0, 255,
+		0, 0, 255, 255,
+		255, 0, 0, 255,
+		0, 255, 0, 255,
+		0, 0, 255, 255,
+		255, 0, 0, 255,
+		0, 255, 0, 255,
+		0, 0, 255, 255,
+		255, 0, 0, 255,
+		0, 255, 0, 255,
+		0, 0, 255, 255,
+	};
+	vector<float> nors{
+		0.0f, 0.0f, 1.0f,
+		0.0f, 0.0f, 1.0f,
+		0.0f, 0.0f, 1.0f,
+		0.0f, 0.0f, 1.0f,
+		0.0f, 0.0f,-1.0f,
+		0.0f, 0.0f,-1.0f,
+		0.0f, 0.0f,-1.0f,
+		0.0f, 0.0f,-1.0f,
+		0.0f, 1.0f, 0.0f,
+		0.0f, 1.0f, 0.0f,
+		0.0f, 1.0f, 0.0f,
+		0.0f, 1.0f, 0.0f,
+		0.0f,-1.0f, 0.0f,
+		0.0f,-1.0f, 0.0f,
+		0.0f,-1.0f, 0.0f,
+		0.0f,-1.0f, 0.0f,
+		1.0f, 0.0f, 0.0f,
+		1.0f, 0.0f, 0.0f,
+		1.0f, 0.0f, 0.0f,
+		1.0f, 0.0f, 0.0f,
+		-1.0f, 0.0f, 0.0f,
+		-1.0f, 0.0f, 0.0f,
+		-1.0f, 0.0f, 0.0f,
+		-1.0f, 0.0f, 0.0f
+	};
 
-	AnimationFrame frame{.mesh = mesh};
+	mesh.vertices = (float*)std::malloc(verts.size() * sizeof(float));
+	std::memcpy(mesh.vertices, verts.data(), verts.size() * sizeof(float));
+
+	mesh.texcoords = (float*)std::malloc(uv.size() * sizeof(float));
+	std::memcpy(mesh.texcoords, uv.data(), uv.size() * sizeof(float));
+
+	mesh.normals = (float*)std::malloc(nors.size() * sizeof(float));
+	std::memcpy(mesh.normals, nors.data(), nors.size() * sizeof(float));
+
+	mesh.colors = (uint8_t*)std::malloc(cols.size() * sizeof(uint8_t));
+	std::memcpy(mesh.colors, cols.data(), cols.size() * sizeof(uint8_t));
+
+	mesh.indices = (uint16_t*)std::malloc(36 * sizeof(uint16_t));
+	int k{0};
+	for (int i = 0; i < 36; i += 6)
+	{
+		mesh.indices[i] = 4 * k;
+		mesh.indices[i + 1] = 4 * k + 1;
+		mesh.indices[i + 2] = 4 * k + 2;
+		mesh.indices[i + 3] = 4 * k;
+		mesh.indices[i + 4] = 4 * k + 2;
+		mesh.indices[i + 5] = 4 * k + 3;
+
+		k++;
+	}
+
+	mesh.vertexCount = 24;
+	mesh.triangleCount = 12;
+
+	this->meshes.push_back(mesh);
+	UploadMesh(&this->meshes[this->meshes.size() - 1], false);
+	//this->frames.push_back(LoadModelFromMesh(mesh));
+
+	//vxlMesh mesh{verts, cols, nors, {0, 1, 2}, 1};
+
+	AnimationFrame frame{};
 	frame.bounds = bounds;
 	frame.voxels.reserve(voxelCount);
 	for (uint32_t i{0}; i < voxelCount; i++)
@@ -256,7 +362,7 @@ void vxlModel::AddFrame(char* boundData, char* voxelData)
 			 .i = static_cast<uint8_t>(*(voxelData + 19 + (i * 4)))});
 	}
 
-	this->frames.push_back(std::move(frame));
+	//this->frames.push_back(std::move(frame));
 }
 
 template <std::size_t N>
