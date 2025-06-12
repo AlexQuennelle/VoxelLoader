@@ -24,6 +24,7 @@ Shader shader;
 
 int main()
 {
+	SetConfigFlags(FLAG_MSAA_4X_HINT);
 #if defined(PLATFORM_WEB)
 	std::string fileName;
 	std::random_device rnd;
@@ -69,7 +70,7 @@ int main()
 	InitWindow(800, 800, NAME);
 #endif
 	shader = LoadShader(RESOURCES_PATH "shaders/test.vert",
-					 RESOURCES_PATH "shaders/test.frag");
+						RESOURCES_PATH "shaders/test.frag");
 	model = new vxl::vxlModel(RESOURCES_PATH + fileName);
 
 	float vFOV = 45.0f;
@@ -78,8 +79,8 @@ int main()
 	float fov =
 		std::min(vFOV, RAD2DEG * (2 * std::atan(std::tan((DEG2RAD * vFOV) / 2) *
 												aspectRatio)));
-	//auto mBounds = Vector3(model->frames[0].bounds.x, model->frames[0].bounds.y,
-	//					   model->frames[0].bounds.z);
+	//auto mBounds = Vector3(model->frames[0].bounds.x,
+	//model->frames[0].bounds.y, 					   model->frames[0].bounds.z);
 	Vector3 mBounds{5, 5, 5};
 	float rad =
 		sqrt((pow(mBounds.x, 2) + pow(mBounds.y, 2)) + pow(mBounds.z, 2)) / 2;
