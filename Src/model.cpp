@@ -1,4 +1,5 @@
 #include "model.h"
+#include "meshGeneration.h"
 #include "utils.h"
 
 #include <algorithm>
@@ -193,152 +194,22 @@ void vxlModel::AddFrame(char* boundData, char* voxelData)
 	std::memcpy(&voxelCount, voxelData + 12, 4);
 
 	int32_t voxVolume{bounds.x * bounds.y * bounds.z};
-	vector<uint8_t> volume;
+	vector<int16_t> volume(voxVolume);
 	volume.reserve(voxVolume);
 
+	//convert list of filled voxels to array of indices
+	//index of -1 means empty
+	std::ranges::fill(volume, -1);
 	for (uint32_t i{0}; i < voxelCount; i++)
 	{
 		auto x = static_cast<uint8_t>(*(voxelData + 16 + (i * 4)));
 		auto y = static_cast<uint8_t>(*(voxelData + 18 + (i * 4)));
 		auto z = static_cast<uint8_t>(*(voxelData + 17 + (i * 4)));
 		uint32_t index = x * bounds.z * bounds.y + z * bounds.y + y;
-		volume[index] = static_cast<uint8_t>(*(voxelData + 19 + (i * 4)));
+		volume[index] = static_cast<int16_t>(*(voxelData + 19 + (i * 4)));
 	}
 
-	Mesh mesh;
-	vector<float> verts{
-		0.0f, 0.0f, 1.0f,
-		1.0f, 0.0f, 1.0f,
-		1.0f, 1.0f, 1.0f,
-		0.0f, 1.0f, 1.0f,
-		0.0f, 0.0f, 0.0f,
-		0.0f, 1.0f, 0.0f,
-		1.0f, 1.0f, 0.0f,
-		1.0f, 0.0f, 0.0f,
-		0.0f, 1.0f, 0.0f,
-		0.0f, 1.0f, 1.0f,
-		1.0f, 1.0f, 1.0f,
-		1.0f, 1.0f, 0.0f,
-		0.0f, 0.0f, 0.0f,
-		1.0f, 0.0f, 0.0f,
-		1.0f, 0.0f, 1.0f,
-		0.0f, 0.0f, 1.0f,
-		1.0f, 0.0f, 0.0f,
-		1.0f, 1.0f, 0.0f,
-		1.0f, 1.0f, 1.0f,
-		1.0f, 0.0f, 1.0f,
-		0.0f, 0.0f, 0.0f,
-		0.0f, 0.0f, 1.0f,
-		0.0f, 1.0f, 1.0f,
-		0.0f, 1.0f, 0.0f
-	};
-	vector<float> uv{
-		0.0f, 0.0f,
-		1.0f, 0.0f,
-		1.0f, 1.0f,
-		0.0f, 1.0f,
-		1.0f, 0.0f,
-		1.0f, 1.0f,
-		0.0f, 1.0f,
-		0.0f, 0.0f,
-		0.0f, 1.0f,
-		0.0f, 0.0f,
-		1.0f, 0.0f,
-		1.0f, 1.0f,
-		1.0f, 1.0f,
-		0.0f, 1.0f,
-		0.0f, 0.0f,
-		1.0f, 0.0f,
-		1.0f, 0.0f,
-		1.0f, 1.0f,
-		0.0f, 1.0f,
-		0.0f, 0.0f,
-		0.0f, 0.0f,
-		1.0f, 0.0f,
-		1.0f, 1.0f,
-		0.0f, 1.0f
-	};
-	vector<uint8_t> cols{
-		255, 0, 0, 255,
-		0, 255, 0, 255,
-		0, 0, 255, 255,
-		255, 0, 0, 255,
-		0, 255, 0, 255,
-		0, 0, 255, 255,
-		255, 0, 0, 255,
-		0, 255, 0, 255,
-		0, 0, 255, 255,
-		255, 0, 0, 255,
-		0, 255, 0, 255,
-		0, 0, 255, 255,
-		255, 0, 0, 255,
-		0, 255, 0, 255,
-		0, 0, 255, 255,
-		255, 0, 0, 255,
-		0, 255, 0, 255,
-		0, 0, 255, 255,
-		255, 0, 0, 255,
-		0, 255, 0, 255,
-		0, 0, 255, 255,
-		255, 0, 0, 255,
-		0, 255, 0, 255,
-		0, 0, 255, 255,
-	};
-	vector<float> nors{
-		0.0f, 0.0f, 1.0f,
-		0.0f, 0.0f, 1.0f,
-		0.0f, 0.0f, 1.0f,
-		0.0f, 0.0f, 1.0f,
-		0.0f, 0.0f,-1.0f,
-		0.0f, 0.0f,-1.0f,
-		0.0f, 0.0f,-1.0f,
-		0.0f, 0.0f,-1.0f,
-		0.0f, 1.0f, 0.0f,
-		0.0f, 1.0f, 0.0f,
-		0.0f, 1.0f, 0.0f,
-		0.0f, 1.0f, 0.0f,
-		0.0f,-1.0f, 0.0f,
-		0.0f,-1.0f, 0.0f,
-		0.0f,-1.0f, 0.0f,
-		0.0f,-1.0f, 0.0f,
-		1.0f, 0.0f, 0.0f,
-		1.0f, 0.0f, 0.0f,
-		1.0f, 0.0f, 0.0f,
-		1.0f, 0.0f, 0.0f,
-		-1.0f, 0.0f, 0.0f,
-		-1.0f, 0.0f, 0.0f,
-		-1.0f, 0.0f, 0.0f,
-		-1.0f, 0.0f, 0.0f
-	};
-
-	mesh.vertices = (float*)std::malloc(verts.size() * sizeof(float));
-	std::memcpy(mesh.vertices, verts.data(), verts.size() * sizeof(float));
-
-	mesh.texcoords = (float*)std::malloc(uv.size() * sizeof(float));
-	std::memcpy(mesh.texcoords, uv.data(), uv.size() * sizeof(float));
-
-	mesh.normals = (float*)std::malloc(nors.size() * sizeof(float));
-	std::memcpy(mesh.normals, nors.data(), nors.size() * sizeof(float));
-
-	mesh.colors = (uint8_t*)std::malloc(cols.size() * sizeof(uint8_t));
-	std::memcpy(mesh.colors, cols.data(), cols.size() * sizeof(uint8_t));
-
-	mesh.indices = (uint16_t*)std::malloc(36 * sizeof(uint16_t));
-	int k{0};
-	for (int i = 0; i < 36; i += 6)
-	{
-		mesh.indices[i] = 4 * k;
-		mesh.indices[i + 1] = 4 * k + 1;
-		mesh.indices[i + 2] = 4 * k + 2;
-		mesh.indices[i + 3] = 4 * k;
-		mesh.indices[i + 4] = 4 * k + 2;
-		mesh.indices[i + 5] = 4 * k + 3;
-
-		k++;
-	}
-
-	mesh.vertexCount = 24;
-	mesh.triangleCount = 12;
+	Mesh mesh = GenerateVoxelMesh(volume, bounds);
 
 	this->meshes.push_back(mesh);
 	UploadMesh(&this->meshes[this->meshes.size() - 1], false);
