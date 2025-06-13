@@ -205,7 +205,7 @@ void vxlModel::AddFrame(char* boundData, char* voxelData)
 		auto x = static_cast<uint8_t>(*(voxelData + 16 + (i * 4)));
 		auto y = static_cast<uint8_t>(*(voxelData + 18 + (i * 4)));
 		auto z = static_cast<uint8_t>(*(voxelData + 17 + (i * 4)));
-		uint32_t index = x * bounds.z * bounds.y + z * bounds.y + y;
+		uint32_t index = (x * bounds.y * bounds.z) + (y * bounds.z) + z;
 		volume[index] = static_cast<int16_t>(*(voxelData + 19 + (i * 4)));
 	}
 
