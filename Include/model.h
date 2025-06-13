@@ -37,6 +37,7 @@ class vxlModel
 
 	array<char, 4> ID;
 	uint32_t version;
+	Vector3Int bounds;
 
 	//vector<AnimationFrame> frames;
 	vector<Model> frames;

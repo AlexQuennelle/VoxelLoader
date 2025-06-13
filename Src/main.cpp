@@ -58,7 +58,7 @@ int main()
 	//std::cout << '\n';
 	//std::cout << "Enter file name: ";
 	//std::cin >> fileName;
-	fileName = "A.vox";
+	fileName = "T-Rex.vox";
 
 	// TODO: make this fancier later
 	if (!std::filesystem::exists(RESOURCES_PATH + fileName))
@@ -79,9 +79,8 @@ int main()
 	float fov =
 		std::min(vFOV, RAD2DEG * (2 * std::atan(std::tan((DEG2RAD * vFOV) / 2) *
 												aspectRatio)));
-	//auto mBounds = Vector3(model->frames[0].bounds.x,
-	//model->frames[0].bounds.y, 					   model->frames[0].bounds.z);
-	Vector3 mBounds{5, 5, 5};
+	auto mBounds = Vector3(model->bounds.x, model->bounds.y, model->bounds.z);
+	//Vector3 mBounds{5, 5, 5};
 	float rad =
 		sqrt((pow(mBounds.x, 2) + pow(mBounds.y, 2)) + pow(mBounds.z, 2)) / 2;
 	float dist = rad * (std::sin(DEG2RAD * 90) / std::sin(DEG2RAD * (fov / 2)));

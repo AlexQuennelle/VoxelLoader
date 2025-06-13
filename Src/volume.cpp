@@ -30,7 +30,7 @@ void DrawVolume(vxlModel* vxlmodel, Shader* shader)
 	//}
 
 	//UploadMesh(&vxlmodel->meshes[0], false);
-	Model model = LoadModelFromMesh(vxlmodel->meshes[0]);
+	Model model = LoadModelFromMesh(vxlmodel->meshes[vxlmodel->curFrame]);
 	model.materials->shader = *shader;
 	DrawModel(model, {0.0f, 0.0f, 0.0f}, 1.0f, WHITE);
 	//DrawModel(model->frames[model->curFrame], {0.0f, 0.0f, 0.0f}, 1.0f,

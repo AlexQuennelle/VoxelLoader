@@ -210,6 +210,7 @@ void vxlModel::AddFrame(char* boundData, char* voxelData)
 	}
 
 	Mesh mesh = GenerateVoxelMesh(volume, bounds);
+	this->bounds = bounds;
 
 	this->meshes.push_back(mesh);
 	UploadMesh(&this->meshes[this->meshes.size() - 1], false);
