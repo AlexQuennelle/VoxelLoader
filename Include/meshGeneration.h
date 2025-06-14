@@ -15,6 +15,6 @@ Mesh GenerateVoxelMesh(const vector<int16_t>& volume, Vector3Int bounds);
 
 int32_t AddVoxel(Vector3 offset, vector<float>& verts, vector<uint8_t>& cols,
 				 vector<float>& nors, vector<uint16_t>& indices,
-				 int32_t triCount);
+				 int32_t triCount, uint8_t mask);
 
 } //namespace vxl

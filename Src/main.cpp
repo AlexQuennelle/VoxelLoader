@@ -58,7 +58,7 @@ int main()
 	//std::cout << '\n';
 	//std::cout << "Enter file name: ";
 	//std::cin >> fileName;
-	fileName = "T-Rex.vox";
+	fileName = "dragon.vox";
 
 	// TODO: make this fancier later
 	if (!std::filesystem::exists(RESOURCES_PATH + fileName))
