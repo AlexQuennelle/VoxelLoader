@@ -73,7 +73,7 @@ int main()
 #endif
 	shader = LoadShader(RESOURCES_PATH "shaders/test.vert",
 						RESOURCES_PATH "shaders/test.frag");
-	model = new vxl::vxlModel(RESOURCES_PATH + fileName);
+	vxlmodel = new vxl::vxlModel(RESOURCES_PATH + fileName);
 
 	float vFOV = 45.0f;
 	float aspectRatio = static_cast<float>(GetScreenWidth()) /
@@ -81,7 +81,7 @@ int main()
 	float fov =
 		std::min(vFOV, RAD2DEG * (2 * std::atan(std::tan((DEG2RAD * vFOV) / 2) *
 												aspectRatio)));
-	auto mBounds = Vector3(model->bounds.x, model->bounds.y, model->bounds.z);
+	auto mBounds = Vector3(vxlmodel->bounds.x, vxlmodel->bounds.y, vxlmodel->bounds.z);
 	//Vector3 mBounds{5, 5, 5};
 	float rad =
 		sqrt((pow(mBounds.x, 2) + pow(mBounds.y, 2)) + pow(mBounds.z, 2)) / 2;
@@ -113,7 +113,7 @@ int main()
 	}
 #endif
 
-	delete model;
+	delete vxlmodel;
 	CloseWindow();
 
 	return 0;
