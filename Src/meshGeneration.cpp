@@ -1,6 +1,7 @@
 #include "meshGeneration.h"
 
-#include <cmath>
+#include <cassert>
+#include <cstddef>
 #include <cstdint>
 #include <cstring>
 #include <iostream>
@@ -72,22 +73,10 @@ Mesh GenerateVoxelMesh(const vector<int16_t>& volume, Vector3Int bounds)
 	mesh.colors = (uint8_t*)std::malloc(cols.size() * sizeof(uint8_t));
 	std::memcpy(mesh.colors, cols.data(), cols.size() * sizeof(uint8_t));
 
-	//mesh.indices = (uint16_t*)std::malloc(triangleCount * 3 *
-	//sizeof(uint16_t)); int k{0}; for (int i = 0; i < triangleCount * 3; i +=
-	//6)
-	//{
-	//	mesh.indices[i] = 4 * k;
-	//	mesh.indices[i + 1] = 4 * k + 1;
-	//	mesh.indices[i + 2] = 4 * k + 2;
-	//	mesh.indices[i + 3] = 4 * k;
-	//	mesh.indices[i + 4] = 4 * k + 2;
-	//	mesh.indices[i + 5] = 4 * k + 3;
-
-	//	k++;
-	//}
-
 	mesh.vertexCount = verts.size() / 3;
 	mesh.triangleCount = triangleCount;
+
+	assert(mesh.indices == NULL);
 
 	return mesh;
 };

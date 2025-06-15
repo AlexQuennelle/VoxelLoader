@@ -1,8 +1,9 @@
 #include "model.h"
-#include "volume.h"
+#include "utils.h"
 
 #include <algorithm>
 #include <cmath>
+#include <cstdint>
 #include <cstring>
 #include <filesystem>
 #include <iostream>
@@ -18,9 +19,10 @@
 void Update();
 
 Camera cam;
-vxl::vxlModel* model;
+vxl::vxlModel* vxlmodel;
 Vector2 camSpeed;
 Shader shader;
+uint8_t renderedFrames{0};
 
 int main()
 {
@@ -150,7 +152,18 @@ void Update()
 	ClearBackground({100, 149, 237, 255});
 	BeginMode3D(cam);
 
-	vxl::DrawVolume(model, &shader);
+	Model model = LoadModelFromMesh(vxlmodel->meshes[vxlmodel->curFrame]);
+	model.materials->shader = shader;
+	DrawModel(model, {0.0f, 0.0f, 0.0f}, 1.0f, WHITE);
+	if (renderedFrames < 5)
+	{
+		renderedFrames++;
+	}
+	else
+	{
+		renderedFrames = 0;
+		vxlmodel->curFrame = (vxlmodel->curFrame + 1) % vxlmodel->frameCount;
+	}
 
 	EndMode3D();
 	DrawFPS(0, 0);
