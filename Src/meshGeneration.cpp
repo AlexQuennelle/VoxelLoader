@@ -43,11 +43,11 @@ Mesh GenerateVoxelMesh(const vector<int16_t>& volume, Vector3Int bounds)
 			offset = {.x = static_cast<float>(x),
 					  .y = static_cast<float>(y),
 					  .z = static_cast<float>(z)};
-			mask |= (x == bounds.x || volume[left] == -1) ? 0b00000001 : 0;
+			mask |= (x == bounds.x - 1 || volume[left] == -1) ? 0b00000001 : 0;
 			mask |= (x == 0 || volume[right] == -1) ? 0b00000010 : 0;
-			mask |= (y == bounds.y || volume[up] == -1) ? 0b00000100 : 0;
+			mask |= (y == bounds.y - 1 || volume[up] == -1) ? 0b00000100 : 0;
 			mask |= (y == 0 || volume[down] == -1) ? 0b00001000 : 0;
-			mask |= (z == bounds.z || volume[back] == -1) ? 0b00010000 : 0;
+			mask |= (z == bounds.z - 1 || volume[back] == -1) ? 0b00010000 : 0;
 			mask |= (z == 0 || volume[front] == -1) ? 0b00100000 : 0;
 			triangleCount = AddVoxel(offset, verts, cols, nors, indices,
 									 triangleCount, mask);
@@ -91,18 +91,15 @@ int32_t AddVoxel(Vector3 offset, vector<float>& verts, vector<uint8_t>& cols,
 	//Back face
 	if ((mask & 0b00010000) != 0)
 	{
-		const vector<float> face1Verts{
-			0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f,
-			0.0f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f, 1.0f,
-		};
-		const vector<uint8_t> face1Cols{
-			255, 0, 0, 255, 0, 255, 0, 255, 0, 0, 255, 255,
-			255, 0, 0, 255, 0, 255, 0, 255, 0, 0, 255, 255,
-		};
-		const vector<float> face1Nors{
-			0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f,
-			0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f,
-		};
+		const vector<float> face1Verts{0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f,
+									   1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f,
+									   1.0f, 1.0f, 1.0f, 0.0f, 1.0f, 1.0f};
+		const vector<uint8_t> face1Cols{255, 0,	  0,   255, 0,	 255, 0,   255,
+										0,	 0,	  255, 255, 255, 0,	  0,   255,
+										0,	 255, 0,   255, 0,	 0,	  255, 255};
+		const vector<float> face1Nors{0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f,
+									  0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f,
+									  0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f};
 		newVerts.insert(newVerts.end(), face1Verts.begin(), face1Verts.end());
 		cols.insert(cols.end(), face1Cols.begin(), face1Cols.end());
 		nors.insert(nors.end(), face1Nors.begin(), face1Nors.end());
@@ -112,18 +109,15 @@ int32_t AddVoxel(Vector3 offset, vector<float>& verts, vector<uint8_t>& cols,
 	//Front face
 	if ((mask & 0b00100000) != 0)
 	{
-		const vector<float> face2Verts{
-			0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f,
-			0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f,
-		};
-		const vector<uint8_t> face2Cols{
-			255, 0, 0, 255, 0, 255, 0, 255, 0, 0, 255, 255,
-			255, 0, 0, 255, 0, 255, 0, 255, 0, 0, 255, 255,
-		};
-		const vector<float> face2Nors{
-			0.0f, 0.0f, -1.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, -1.0f,
-			0.0f, 0.0f, -1.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, -1.0f,
-		};
+		const vector<float> face2Verts{0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+									   1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+									   1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f};
+		const vector<uint8_t> face2Cols{255, 0,	  0,   255, 0,	 255, 0,   255,
+										0,	 0,	  255, 255, 255, 0,	  0,   255,
+										0,	 255, 0,   255, 0,	 0,	  255, 255};
+		const vector<float> face2Nors{0.0f, 0.0f, -1.0f, 0.0f, 0.0f, -1.0f,
+									  0.0f, 0.0f, -1.0f, 0.0f, 0.0f, -1.0f,
+									  0.0f, 0.0f, -1.0f, 0.0f, 0.0f, -1.0f};
 		newVerts.insert(newVerts.end(), face2Verts.begin(), face2Verts.end());
 		cols.insert(cols.end(), face2Cols.begin(), face2Cols.end());
 		nors.insert(nors.end(), face2Nors.begin(), face2Nors.end());
@@ -133,18 +127,15 @@ int32_t AddVoxel(Vector3 offset, vector<float>& verts, vector<uint8_t>& cols,
 	//Top face
 	if ((mask & 0b00000100) != 0)
 	{
-		const vector<float> face3Verts{
-			0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f,
-			0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f,
-		};
-		const vector<uint8_t> face3Cols{
-			255, 0, 0, 255, 0, 255, 0, 255, 0, 0, 255, 255,
-			255, 0, 0, 255, 0, 255, 0, 255, 0, 0, 255, 255,
-		};
-		const vector<float> face3Nors{
-			0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
-			0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
-		};
+		const vector<float> face3Verts{0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f,
+									   1.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f,
+									   1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f};
+		const vector<uint8_t> face3Cols{255, 0,	  0,   255, 0,	 255, 0,   255,
+										0,	 0,	  255, 255, 255, 0,	  0,   255,
+										0,	 255, 0,   255, 0,	 0,	  255, 255};
+		const vector<float> face3Nors{0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+									  0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+									  0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f};
 		newVerts.insert(newVerts.end(), face3Verts.begin(), face3Verts.end());
 		cols.insert(cols.end(), face3Cols.begin(), face3Cols.end());
 		nors.insert(nors.end(), face3Nors.begin(), face3Nors.end());
@@ -157,10 +148,9 @@ int32_t AddVoxel(Vector3 offset, vector<float>& verts, vector<uint8_t>& cols,
 		const vector<float> face4Verts{0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
 									   1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f,
 									   1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f};
-		const vector<uint8_t> face4Cols{
-			255, 0, 0, 255, 0, 255, 0, 255, 0, 0, 255, 255,
-			255, 0, 0, 255, 0, 255, 0, 255, 0, 0, 255, 255,
-		};
+		const vector<uint8_t> face4Cols{255, 0,	  0,   255, 0,	 255, 0,   255,
+										0,	 0,	  255, 255, 255, 0,	  0,   255,
+										0,	 255, 0,   255, 0,	 0,	  255, 255};
 		const vector<float> face4Nors{0.0f, -1.0f, 0.0f, 0.0f, -1.0f, 0.0f,
 									  0.0f, -1.0f, 0.0f, 0.0f, -1.0f, 0.0f,
 									  0.0f, -1.0f, 0.0f, 0.0f, -1.0f, 0.0f};
@@ -176,10 +166,9 @@ int32_t AddVoxel(Vector3 offset, vector<float>& verts, vector<uint8_t>& cols,
 		const vector<float> face5Verts{1.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f,
 									   1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f,
 									   1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f};
-		const vector<uint8_t> face5Cols{
-			255, 0, 0, 255, 0, 255, 0, 255, 0, 255, 0, 255,
-			255, 0, 0, 255, 0, 255, 0, 255, 0, 255, 0, 255,
-		};
+		const vector<uint8_t> face5Cols{255, 0,	  0,   255, 0,	 255, 0,   255,
+										0,	 0,	  255, 255, 255, 0,	  0,   255,
+										0,	 255, 0,   255, 0,	 0,	  255, 255};
 		const vector<float> face5Nors{1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
 									  1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
 									  1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f};
@@ -195,10 +184,9 @@ int32_t AddVoxel(Vector3 offset, vector<float>& verts, vector<uint8_t>& cols,
 		const vector<float> face6Verts{0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
 									   0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f,
 									   0.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f};
-		const vector<uint8_t> face6Cols{
-			255, 0, 0, 255, 0, 255, 0, 255, 0, 0, 255, 255,
-			255, 0, 0, 255, 0, 255, 0, 255, 0, 0, 255, 255,
-		};
+		const vector<uint8_t> face6Cols{255, 0,	  0,   255, 0,	 255, 0,   255,
+										0,	 0,	  255, 255, 255, 0,	  0,   255,
+										0,	 255, 0,   255, 0,	 0,	  255, 255};
 		const vector<float> face6Nors{-1.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f,
 									  -1.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f,
 									  -1.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f};
