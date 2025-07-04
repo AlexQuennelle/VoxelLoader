@@ -1,6 +1,6 @@
 read -p "Build type: " buildType
 mkdir -p bin
-if [[ "${buildType/w/W}" = "Web" ]]; then
+if [[ "${buildType^}" = "Web" ]]; then
 	mkdir -p build.web
 	cd build.web
 	emcmake cmake -DCMAKE_BUILD_TYPE=Release -DPLATFORM=Web ..
