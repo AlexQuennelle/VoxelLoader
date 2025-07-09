@@ -209,11 +209,11 @@ void vxlModel::AddFrame(char* boundData, char* voxelData)
 		volume[index] = static_cast<int16_t>(*(voxelData + 19 + (i * 4)));
 	}
 
-	Mesh mesh = GenerateVoxelMesh(volume, bounds);
+	VXLMesh mesh = GenerateVoxelMesh(volume, bounds);
 	this->bounds = bounds;
 
 	this->meshes.push_back(mesh);
-	UploadMesh(&this->meshes[this->meshes.size() - 1], false);
+	//UploadMesh(&this->meshes[this->meshes.size() - 1], false);
 	//this->frames.push_back(LoadModelFromMesh(mesh));
 
 	//vxlMesh mesh{verts, cols, nors, {0, 1, 2}, 1};

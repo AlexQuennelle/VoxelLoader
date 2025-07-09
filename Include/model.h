@@ -1,5 +1,6 @@
 #pragma once
 
+#include "vxlMesh.h"
 #include <array>
 #include <cstdint>
 #include <ostream>
@@ -41,7 +42,7 @@ class vxlModel
 
 	//vector<AnimationFrame> frames;
 	vector<Model> frames;
-	vector<Mesh> meshes;
+	vector<VXLMesh> meshes;
 	uint32_t frameCount{1};
 	uint32_t curFrame{0};
 	array<uint32_t, 256> palette{};
