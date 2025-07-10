@@ -21,7 +21,7 @@ void Update();
 Camera cam;
 vxl::vxlModel* vxlmodel;
 Vector2 camSpeed;
-Shader shader;
+//Shader shader;
 uint8_t renderedFrames{0};
 
 int main()
@@ -70,8 +70,6 @@ int main()
 
 	InitWindow(800, 800, NAME);
 #endif
-	shader = LoadShader(RESOURCES_PATH "shaders/test.vert",
-						RESOURCES_PATH "shaders/test.frag");
 	vxlmodel = new vxl::vxlModel(RESOURCES_PATH + fileName);
 
 	float vFOV = 45.0f;
@@ -152,7 +150,7 @@ void Update()
 	BeginMode3D(cam);
 
 	Model model = LoadModelFromMesh(vxlmodel->meshes[vxlmodel->curFrame]);
-	model.materials->shader = shader;
+	model.materials->shader = vxlmodel->shader;
 	DrawModel(model, {0.0f, 0.0f, 0.0f}, 1.0f, WHITE);
 	if (renderedFrames < 5)
 	{

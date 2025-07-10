@@ -91,6 +91,9 @@ std::ostream& operator<<(std::ostream& os, Vector4Int vec)
 
 vxlModel::vxlModel(const std::string& filePath)
 {
+	shader = LoadShader(RESOURCES_PATH "shaders/litShader.vert",
+						RESOURCES_PATH "shaders/litShader.frag");
+
 	std::streampos fSize;
 	char* fileData;
 
