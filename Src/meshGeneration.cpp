@@ -39,7 +39,7 @@ Mesh GenerateVoxelMesh(const vector<int16_t>& volume, Vector3Int bounds)
 				(x * bounds.y * bounds.z) + (y * bounds.z) + (z - 1);
 			uint32_t back =
 				(x * bounds.y * bounds.z) + (y * bounds.z) + (z + 1);
-			//std::cout << i << '\n';
+
 			offset = {.x = static_cast<float>(x),
 					  .y = static_cast<float>(y),
 					  .z = static_cast<float>(z)};
@@ -51,7 +51,6 @@ Mesh GenerateVoxelMesh(const vector<int16_t>& volume, Vector3Int bounds)
 			mask |= (z == 0 || volume[front] == -1) ? 0b00100000 : 0;
 			triangleCount = AddVoxel(offset, verts, cols, nors, indices,
 									 triangleCount, mask);
-			//std::cout << "Triangles: " << triangleCount << '\n';
 		}
 	}
 	std::cout << "Triangles: " << triangleCount << '\n';
@@ -73,10 +72,22 @@ Mesh GenerateVoxelMesh(const vector<int16_t>& volume, Vector3Int bounds)
 	mesh.colors = (uint8_t*)std::malloc(cols.size() * sizeof(uint8_t));
 	std::memcpy(mesh.colors, cols.data(), cols.size() * sizeof(uint8_t));
 
+	mesh.indices = (uint16_t*)std::malloc(triangleCount * 3 * sizeof(uint16_t));
+	int k{0};
+	for (int i = 0; i < triangleCount * 3; i += 6)
+	{
+		mesh.indices[i] = 4 * k;
+		mesh.indices[i + 1] = 4 * k + 1;
+		mesh.indices[i + 2] = 4 * k + 2;
+		mesh.indices[i + 3] = 4 * k;
+		mesh.indices[i + 4] = 4 * k + 2;
+		mesh.indices[i + 5] = 4 * k + 3;
+
+		k++;
+	}
+
 	mesh.vertexCount = verts.size() / 3;
 	mesh.triangleCount = triangleCount;
-
-	assert(mesh.indices == NULL);
 
 	return mesh;
 };
@@ -92,13 +103,10 @@ int32_t AddVoxel(Vector3 offset, vector<float>& verts, vector<uint8_t>& cols,
 	if ((mask & 0b00010000) != 0)
 	{
 		const vector<float> face1Verts{0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f,
-									   1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f,
 									   1.0f, 1.0f, 1.0f, 0.0f, 1.0f, 1.0f};
 		const vector<uint8_t> face1Cols{255, 0,	  0,   255, 0,	 255, 0,   255,
-										0,	 0,	  255, 255, 255, 0,	  0,   255,
 										0,	 255, 0,   255, 0,	 0,	  255, 255};
 		const vector<float> face1Nors{0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f,
-									  0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f,
 									  0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f};
 		newVerts.insert(newVerts.end(), face1Verts.begin(), face1Verts.end());
 		cols.insert(cols.end(), face1Cols.begin(), face1Cols.end());
@@ -110,13 +118,10 @@ int32_t AddVoxel(Vector3 offset, vector<float>& verts, vector<uint8_t>& cols,
 	if ((mask & 0b00100000) != 0)
 	{
 		const vector<float> face2Verts{0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
-									   1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
 									   1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f};
 		const vector<uint8_t> face2Cols{255, 0,	  0,   255, 0,	 255, 0,   255,
-										0,	 0,	  255, 255, 255, 0,	  0,   255,
 										0,	 255, 0,   255, 0,	 0,	  255, 255};
 		const vector<float> face2Nors{0.0f, 0.0f, -1.0f, 0.0f, 0.0f, -1.0f,
-									  0.0f, 0.0f, -1.0f, 0.0f, 0.0f, -1.0f,
 									  0.0f, 0.0f, -1.0f, 0.0f, 0.0f, -1.0f};
 		newVerts.insert(newVerts.end(), face2Verts.begin(), face2Verts.end());
 		cols.insert(cols.end(), face2Cols.begin(), face2Cols.end());
@@ -128,13 +133,10 @@ int32_t AddVoxel(Vector3 offset, vector<float>& verts, vector<uint8_t>& cols,
 	if ((mask & 0b00000100) != 0)
 	{
 		const vector<float> face3Verts{0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f,
-									   1.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f,
 									   1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f};
 		const vector<uint8_t> face3Cols{255, 0,	  0,   255, 0,	 255, 0,   255,
-										0,	 0,	  255, 255, 255, 0,	  0,   255,
 										0,	 255, 0,   255, 0,	 0,	  255, 255};
 		const vector<float> face3Nors{0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
-									  0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
 									  0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f};
 		newVerts.insert(newVerts.end(), face3Verts.begin(), face3Verts.end());
 		cols.insert(cols.end(), face3Cols.begin(), face3Cols.end());
@@ -146,13 +148,10 @@ int32_t AddVoxel(Vector3 offset, vector<float>& verts, vector<uint8_t>& cols,
 	if ((mask & 0b00001000) != 0)
 	{
 		const vector<float> face4Verts{0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
-									   1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f,
 									   1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f};
 		const vector<uint8_t> face4Cols{255, 0,	  0,   255, 0,	 255, 0,   255,
-										0,	 0,	  255, 255, 255, 0,	  0,   255,
 										0,	 255, 0,   255, 0,	 0,	  255, 255};
 		const vector<float> face4Nors{0.0f, -1.0f, 0.0f, 0.0f, -1.0f, 0.0f,
-									  0.0f, -1.0f, 0.0f, 0.0f, -1.0f, 0.0f,
 									  0.0f, -1.0f, 0.0f, 0.0f, -1.0f, 0.0f};
 		newVerts.insert(newVerts.end(), face4Verts.begin(), face4Verts.end());
 		cols.insert(cols.end(), face4Cols.begin(), face4Cols.end());
@@ -164,13 +163,10 @@ int32_t AddVoxel(Vector3 offset, vector<float>& verts, vector<uint8_t>& cols,
 	if ((mask & 0b00000001) != 0)
 	{
 		const vector<float> face5Verts{1.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f,
-									   1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f,
 									   1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f};
 		const vector<uint8_t> face5Cols{255, 0,	  0,   255, 0,	 255, 0,   255,
-										0,	 0,	  255, 255, 255, 0,	  0,   255,
 										0,	 255, 0,   255, 0,	 0,	  255, 255};
 		const vector<float> face5Nors{1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
-									  1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
 									  1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f};
 		newVerts.insert(newVerts.end(), face5Verts.begin(), face5Verts.end());
 		cols.insert(cols.end(), face5Cols.begin(), face5Cols.end());
@@ -182,13 +178,10 @@ int32_t AddVoxel(Vector3 offset, vector<float>& verts, vector<uint8_t>& cols,
 	if ((mask & 0b00000010) != 0)
 	{
 		const vector<float> face6Verts{0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
-									   0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f,
 									   0.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f};
 		const vector<uint8_t> face6Cols{255, 0,	  0,   255, 0,	 255, 0,   255,
-										0,	 0,	  255, 255, 255, 0,	  0,   255,
 										0,	 255, 0,   255, 0,	 0,	  255, 255};
 		const vector<float> face6Nors{-1.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f,
-									  -1.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f,
 									  -1.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f};
 		newVerts.insert(newVerts.end(), face6Verts.begin(), face6Verts.end());
 		cols.insert(cols.end(), face6Cols.begin(), face6Cols.end());
