@@ -1,4 +1,5 @@
 #include "model.h"
+#include "utils.h"
 
 #include <algorithm>
 #include <cmath>
@@ -20,7 +21,7 @@ void Update();
 Camera cam;
 vxl::vxlModel* vxlmodel;
 Vector2 camSpeed;
-//Shader shader;
+Shader shader;
 uint8_t renderedFrames{0};
 
 int main()
@@ -69,8 +70,8 @@ int main()
 
 	InitWindow(800, 800, NAME);
 #endif
-	//shader = LoadShader(RESOURCES_PATH "shaders/test.vert",
-	//					RESOURCES_PATH "shaders/test.frag");
+	shader = LoadShader(RESOURCES_PATH "shaders/test.vert",
+						RESOURCES_PATH "shaders/test.frag");
 	vxlmodel = new vxl::vxlModel(RESOURCES_PATH + fileName);
 
 	float vFOV = 45.0f;
@@ -79,8 +80,7 @@ int main()
 	float fov =
 		std::min(vFOV, RAD2DEG * (2 * std::atan(std::tan((DEG2RAD * vFOV) / 2) *
 												aspectRatio)));
-	auto mBounds =
-		Vector3(vxlmodel->bounds.x, vxlmodel->bounds.y, vxlmodel->bounds.z);
+	auto mBounds = Vector3(vxlmodel->bounds.x, vxlmodel->bounds.y, vxlmodel->bounds.z);
 	//Vector3 mBounds{5, 5, 5};
 	float rad =
 		sqrt((pow(mBounds.x, 2) + pow(mBounds.y, 2)) + pow(mBounds.z, 2)) / 2;
@@ -151,13 +151,9 @@ void Update()
 	ClearBackground({100, 149, 237, 255});
 	BeginMode3D(cam);
 
-	//Model model = LoadModelFromMesh(vxlmodel->meshes[vxlmodel->curFrame]);
-	//model.materials->shader = shader;
-	//Material mat = LoadMaterialDefault();
-	//mat.shader = shader;
-	vxlmodel->meshes[vxlmodel->curFrame].Draw();
-	//DrawMesh(vxlmodel->meshes[vxlmodel->curFrame], mat, MatrixIdentity());
-	//DrawModel(model, {0.0f, 0.0f, 0.0f}, 1.0f, WHITE);
+	Model model = LoadModelFromMesh(vxlmodel->meshes[vxlmodel->curFrame]);
+	model.materials->shader = shader;
+	DrawModel(model, {0.0f, 0.0f, 0.0f}, 1.0f, WHITE);
 	if (renderedFrames < 5)
 	{
 		renderedFrames++;

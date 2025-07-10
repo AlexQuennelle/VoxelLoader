@@ -1,8 +1,4 @@
-if [[ "$1" ]]; then
-	buildType="$1"
-else
-	read -p "Build type: " buildType
-fi
+read -p "Build type: " buildType
 mkdir -p bin
 if [[ "${buildType^}" = "Web" ]]; then
 	mkdir -p build.web

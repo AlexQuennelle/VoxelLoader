@@ -1,7 +1,6 @@
 #pragma once
 
 #include "model.h"
-#include "vxlMesh.h"
 
 #include <cstdint>
 #include <raylib.h>
@@ -12,10 +11,7 @@ namespace vxl
 
 using std::vector;
 
-VXLMesh GenerateVoxelMesh(const vector<int16_t>& volume, Vector3Int bounds);
-
-Mesh PopulateMesh(const vector<float>& verts, const vector<uint8_t>& cols,
-				  const vector<float>& nors, const int32_t triCount);
+Mesh GenerateVoxelMesh(const vector<int16_t>& volume, Vector3Int bounds);
 
 int32_t AddVoxel(Vector3 offset, vector<float>& verts, vector<uint8_t>& cols,
 				 vector<float>& nors, vector<uint16_t>& indices,
