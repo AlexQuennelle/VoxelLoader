@@ -1,4 +1,5 @@
 #include "meshGeneration.h"
+#include "vxlMesh.h"
 
 #include <cassert>
 #include <cstdint>
@@ -10,8 +11,9 @@
 namespace vxl
 {
 
-Mesh GenerateVoxelMesh(const vector<int16_t>& volume, Vector3Int bounds)
+vxlMesh GenerateVoxelMesh(const vector<int16_t>& volume, Vector3Int bounds)
 {
+	vxlMesh vxlmesh;
 	Vector3 offset{};
 	int32_t triangleCount{0};
 	vector<float> verts{};
@@ -55,7 +57,9 @@ Mesh GenerateVoxelMesh(const vector<int16_t>& volume, Vector3Int bounds)
 	std::cout << "Triangles: " << triangleCount << '\n';
 	std::cout << "Vertices" << verts.size() / 3 << '\n';
 
-	return PopulateMesh(verts, cols, nors, triangleCount);
+	//return PopulateMesh(verts, cols, nors, triangleCount);
+	vxlmesh.meshes.push_back(PopulateMesh(verts, cols, nors, triangleCount));
+	return vxlmesh;
 };
 
 Mesh PopulateMesh(vector<float>& verts, vector<uint8_t>& cols,

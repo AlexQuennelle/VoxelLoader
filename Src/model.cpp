@@ -91,8 +91,10 @@ std::ostream& operator<<(std::ostream& os, Vector4Int vec)
 
 vxlModel::vxlModel(const std::string& filePath)
 {
-	shader = LoadShader(RESOURCES_PATH "shaders/litShader.vert",
-						RESOURCES_PATH "shaders/litShader.frag");
+	this->shader = LoadShader(RESOURCES_PATH "shaders/litShader.vert",
+							  RESOURCES_PATH "shaders/litShader.frag");
+	this->mat = LoadMaterialDefault();
+	this->mat.shader = this->shader;
 
 	std::streampos fSize;
 	char* fileData;
@@ -212,28 +214,32 @@ void vxlModel::AddFrame(char* boundData, char* voxelData)
 		volume[index] = static_cast<int16_t>(*(voxelData + 19 + (i * 4)));
 	}
 
-	Mesh mesh = GenerateVoxelMesh(volume, bounds);
+	vxlMesh mesh = GenerateVoxelMesh(volume, bounds);
 	this->bounds = bounds;
 
 	this->meshes.push_back(mesh);
-	UploadMesh(&this->meshes[this->meshes.size() - 1], false);
-	//this->frames.push_back(LoadModelFromMesh(mesh));
-
-	//vxlMesh mesh{verts, cols, nors, {0, 1, 2}, 1};
-
-	AnimationFrame frame{};
-	frame.bounds = bounds;
-	frame.voxels.reserve(voxelCount);
-	for (uint32_t i{0}; i < voxelCount; i++)
+	for (uint32_t i{0}; i < this->meshes[this->meshes.size() - 1].meshes.size();
+		 i++)
 	{
-		frame.voxels.push_back(
-			{.x = static_cast<uint8_t>(*(voxelData + 16 + (i * 4))),
-			 .y = static_cast<uint8_t>(*(voxelData + 18 + (i * 4))),
-			 .z = static_cast<uint8_t>(*(voxelData + 17 + (i * 4))),
-			 .i = static_cast<uint8_t>(*(voxelData + 19 + (i * 4)))});
+		UploadMesh(&this->meshes[this->meshes.size() - 1].meshes[i], false);
 	}
+}
 
-	//this->frames.push_back(std::move(frame));
+void vxlModel::Draw()
+{
+	for (auto mesh : this->meshes[this->curFrame].meshes)
+	{
+		DrawMesh(mesh, this->mat, MatrixIdentity());
+	}
+	if (this->renderedFrames < 5)
+	{
+		this->renderedFrames++;
+	}
+	else
+	{
+		renderedFrames = 0;
+		this->curFrame = (this->curFrame + 1) % this->frameCount;
+	}
 }
 
 template <std::size_t N>

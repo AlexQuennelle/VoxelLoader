@@ -1,5 +1,4 @@
 #include "model.h"
-#include "utils.h"
 
 #include <algorithm>
 #include <cmath>
@@ -21,8 +20,6 @@ void Update();
 Camera cam;
 vxl::vxlModel* vxlmodel;
 Vector2 camSpeed;
-//Shader shader;
-uint8_t renderedFrames{0};
 
 int main()
 {
@@ -78,7 +75,8 @@ int main()
 	float fov =
 		std::min(vFOV, RAD2DEG * (2 * std::atan(std::tan((DEG2RAD * vFOV) / 2) *
 												aspectRatio)));
-	auto mBounds = Vector3(vxlmodel->bounds.x, vxlmodel->bounds.y, vxlmodel->bounds.z);
+	auto mBounds =
+		Vector3(vxlmodel->bounds.x, vxlmodel->bounds.y, vxlmodel->bounds.z);
 	//Vector3 mBounds{5, 5, 5};
 	float rad =
 		sqrt((pow(mBounds.x, 2) + pow(mBounds.y, 2)) + pow(mBounds.z, 2)) / 2;
@@ -149,18 +147,7 @@ void Update()
 	ClearBackground({100, 149, 237, 255});
 	BeginMode3D(cam);
 
-	Model model = LoadModelFromMesh(vxlmodel->meshes[vxlmodel->curFrame]);
-	model.materials->shader = vxlmodel->shader;
-	DrawModel(model, {0.0f, 0.0f, 0.0f}, 1.0f, WHITE);
-	if (renderedFrames < 5)
-	{
-		renderedFrames++;
-	}
-	else
-	{
-		renderedFrames = 0;
-		vxlmodel->curFrame = (vxlmodel->curFrame + 1) % vxlmodel->frameCount;
-	}
+	vxlmodel->Draw();
 
 	EndMode3D();
 	DrawFPS(0, 0);
