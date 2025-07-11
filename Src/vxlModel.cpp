@@ -98,7 +98,7 @@ vxlModel::vxlModel(const std::string& filePath)
 #else
 	this->shader = LoadShader(RESOURCES_PATH "shaders/litShader.vert",
 							  RESOURCES_PATH "shaders/litShader.frag");
-#endif // DEBUG
+#endif
 	this->mat = LoadMaterialDefault();
 	this->mat.shader = this->shader;
 
@@ -194,8 +194,6 @@ void vxlModel::ProcessChunks(char* bytes)
 		case RGBA:
 			std::cout << "Pallette Found" << '\n';
 			std::memcpy(this->palette.data(), addr + 12, 1024);
-			std::cout << std::hex << this->palette[79] << '\n';
-			std::cout << std::dec;
 			break;
 		default:
 			break;
