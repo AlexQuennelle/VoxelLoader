@@ -4,6 +4,7 @@ else
 	read -p "Build type: " buildType
 fi
 mkdir -p bin
+echo ${buildType}
 if [[ "${buildType^}" = "Web" ]]; then
 	mkdir -p build.web
 	cd build.web
@@ -11,11 +12,12 @@ if [[ "${buildType^}" = "Web" ]]; then
 	emmake make
 	cd ..
 	exit
-elif [[ "${buildType^}" != "Debug" && "${buildType^} != Release" ]]; then
+elif [ "${buildType^}" != "Debug" ] && [ "${buildType^}" != "Release" ]; then
 	buildType="Debug"
 fi
 mkdir -p build
 cd build
+echo ${buildType}
 cmake -DCMAKE_BUILD_TYPE="${buildType^}" .. -G "Unix Makefiles"
 make
 cd ..

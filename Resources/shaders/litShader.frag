@@ -12,6 +12,6 @@ out vec4 finalColor;
 
 void main()
 {
+    //finalColor = vec4(1.0f, 1.0f, 1.0f, 10.0f / 255); //overdraw visualization
     finalColor = fragColor;
-    //finalColor = vec4(fragNormal, 1.0f);
 }
