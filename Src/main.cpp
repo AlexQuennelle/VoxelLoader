@@ -1,3 +1,4 @@
+#include "utils.h"
 #include "vxlModel.h"
 
 #include <algorithm>
@@ -32,8 +33,13 @@ int main()
 		std::vector<std::string> files;
 		for (const auto& entry : fs::directory_iterator(RESOURCES_PATH))
 		{
-			files.push_back(
-				entry.path().string().erase(0, strlen(RESOURCES_PATH)));
+			std::string name =
+				entry.path().string().erase(0, strlen(RESOURCES_PATH));
+			if (name.substr(name.length() - 4, 4) == ".vox")
+			{
+				files.push_back(name);
+				std::cout << name << '\n';
+			}
 		}
 		std::cout << files.size() << '\n';
 		std::uniform_int_distribution<> random(0, files.size() - 1);
@@ -42,6 +48,7 @@ int main()
 
 	InitWindow(500, 500, NAME);
 #else
+	std::string fileName;
 	std::cout << "Chose a file to load\n\n";
 	{
 		namespace fs = std::filesystem;
@@ -49,19 +56,45 @@ int main()
 		{
 			std::string name =
 				entry.path().string().erase(0, strlen(RESOURCES_PATH));
-			std::cout << '\t' << name << '\n';
+			if (name.substr(name.length() - 4, 4) == ".vox")
+			{
+				std::cout << '\t' << name << '\n';
+			}
 		}
 	}
-	std::string fileName;
-	std::cout << '\n';
+	std::cout << "\n\n\0337";
 	std::cout << "Enter file name: ";
-	std::cin >> fileName;
-
-	// TODO: make this fancier later
-	if (!std::filesystem::exists(RESOURCES_PATH + fileName))
+	bool chosingFile{true};
+	while (chosingFile)
 	{
-		std::cout << RESOURCES_PATH << fileName << " does not exist\n";
-		return -1;
+		std::cin >> fileName;
+
+		if (!std::filesystem::exists(RESOURCES_PATH + fileName))
+		{
+			//Move back up one line to counteract RETURN and clear
+			//Then restore saved position and move up one
+			//This means the error message prints above the input and the
+			//input field clears itself correctly regardless of empty returns
+			std::cout << "\033[1A\033[2K\0338\033[1A\033[2K";
+			vxl::SetTextColor(vxl::ERROR);
+			std::cout << RESOURCES_PATH << fileName << " does not exist\0338";
+			std::cout << "Enter file name: ";
+			vxl::ClearStyles();
+		}
+		else if (fileName.substr(fileName.length() - 4, 4) != ".vox")
+		{
+			std::cout << "\033[1A\033[2K\0338\033[1A";
+			vxl::SetTextColor(vxl::ERROR);
+			std::cout << RESOURCES_PATH << fileName
+					  << " is not a .vox file\0338";
+			std::cout << "Enter file name: ";
+			vxl::ClearStyles();
+		}
+		else
+		{
+			chosingFile = false;
+			std::cout << "\033[2J\033[H";
+		}
 	}
 
 	InitWindow(800, 800, NAME);
