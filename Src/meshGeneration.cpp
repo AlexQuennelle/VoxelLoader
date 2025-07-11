@@ -5,7 +5,9 @@
 #include <cstdint>
 #include <cstring>
 #include <iostream>
+#include <limits>
 #include <raylib.h>
+#include <utility>
 #include <vector>
 
 namespace vxl
@@ -15,7 +17,7 @@ vxlMesh GenerateVoxelMesh(const vector<int16_t>& volume, Vector3Int bounds)
 {
 	vxlMesh vxlmesh;
 	Vector3 offset{};
-	int32_t triangleCount{0};
+	int32_t triCount{0};
 	vector<float> verts{};
 	vector<uint8_t> cols{};
 	vector<float> nors{};
@@ -41,31 +43,57 @@ vxlMesh GenerateVoxelMesh(const vector<int16_t>& volume, Vector3Int bounds)
 
 			offset = {
 				.x = static_cast<float>(x) - (static_cast<float>(bounds.x) / 2),
-				.y = static_cast<float>(y) - (static_cast<float>(bounds.x) / 2),
+				.y = static_cast<float>(y) - (static_cast<float>(bounds.y) / 2),
 				.z =
-					static_cast<float>(z) - (static_cast<float>(bounds.x) / 2)};
+					static_cast<float>(z) - (static_cast<float>(bounds.z) / 2)};
 			mask |= (x == bounds.x - 1 || volume[left] == -1) ? 0b00000001 : 0;
 			mask |= (x == 0 || volume[right] == -1) ? 0b00000010 : 0;
 			mask |= (y == bounds.y - 1 || volume[top] == -1) ? 0b00000100 : 0;
 			mask |= (y == 0 || volume[down] == -1) ? 0b00001000 : 0;
 			mask |= (z == bounds.z - 1 || volume[back] == -1) ? 0b00010000 : 0;
 			mask |= (z == 0 || volume[front] == -1) ? 0b00100000 : 0;
-			triangleCount =
-				AddVoxel(offset, verts, cols, nors, triangleCount, mask);
+			triCount = AddVoxel(offset, verts, cols, nors, triCount, mask);
+			if (triCount > (std::numeric_limits<uint16_t>::max() / 3) - 12)
+			{
+				std::cout << "Triangles: " << triCount << '/'
+						  << (std::numeric_limits<uint16_t>::max() / 3) << '\n';
+				std::cout << "Vertices: " << verts.size() / 3 << '\n';
+				std::cout << "Split\n";
+
+				auto* mesh = new Mesh();
+				vxlmesh.meshes.push_back(*mesh);
+				PopulateMesh(vxlmesh.meshes[vxlmesh.meshes.size() - 1], verts,
+							 cols, nors, triCount);
+				//vxlmesh.meshes.push_back(
+				//	PopulateMesh(verts, cols, nors, triCount));
+				triCount = 0;
+				verts.clear();
+				cols.clear();
+				nors.clear();
+			}
 		}
 	}
-	std::cout << "Triangles: " << triangleCount << '\n';
-	std::cout << "Vertices" << verts.size() / 3 << '\n';
 
-	//return PopulateMesh(verts, cols, nors, triangleCount);
-	vxlmesh.meshes.push_back(PopulateMesh(verts, cols, nors, triangleCount));
+	if (triCount != 0)
+	{
+		std::cout << "Triangles: " << triCount << '/'
+				  << (std::numeric_limits<uint16_t>::max() / 3) << '\n';
+		std::cout << "Vertices: " << verts.size() / 3 << '\n';
+
+		//vxlmesh.meshes.push_back(PopulateMesh(verts, cols, nors, triCount));
+		auto* mesh = new Mesh();
+		vxlmesh.meshes.push_back(*mesh);
+		//vxlmesh.meshes[vxlmesh.meshes.size() - 1];
+		PopulateMesh(vxlmesh.meshes[vxlmesh.meshes.size() - 1], verts, cols,
+					 nors, triCount);
+	}
+
 	return vxlmesh;
 };
 
-Mesh PopulateMesh(vector<float>& verts, vector<uint8_t>& cols,
+void PopulateMesh(Mesh& mesh, vector<float>& verts, vector<uint8_t>& cols,
 				  vector<float>& nors, int32_t triCount)
 {
-	Mesh mesh;
 	vector<uint16_t> indices{};
 	mesh.vertices = (float*)std::malloc(verts.size() * sizeof(float));
 	std::memcpy(mesh.vertices, verts.data(), verts.size() * sizeof(float));
@@ -93,7 +121,7 @@ Mesh PopulateMesh(vector<float>& verts, vector<uint8_t>& cols,
 	mesh.vertexCount = verts.size() / 3;
 	mesh.triangleCount = triCount;
 
-	return mesh;
+	//return mesh;
 }
 
 int32_t AddVoxel(Vector3 offset, vector<float>& verts, vector<uint8_t>& cols,
