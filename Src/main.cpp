@@ -40,7 +40,7 @@ int main()
 		fileName = files[random(gen)];
 	}
 
-	InitWindow(400, 400, NAME);
+	InitWindow(500, 500, NAME);
 #else
 	std::cout << "Chose a file to load\n\n";
 	{

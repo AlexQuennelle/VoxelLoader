@@ -15,6 +15,7 @@
 #include <raylib.h>
 #include <raymath.h>
 #include <string>
+#include <vector>
 
 namespace vxl
 {
@@ -157,6 +158,12 @@ void vxlModel::ProcessChunks(char* bytes)
 	std::memcpy(&fileChildren, bytes + 8, 4);
 	char* endAddr = bytes + (fileContent + fileChildren + 12);
 	char* addr{bytes + 12};
+	struct FrameData
+	{
+		char* addr;
+		char* nextAddr;
+	};
+	vector<FrameData> frameQueue;
 	//custom iterator
 	//step through the block of raw bytes according to the chunk information
 	while (addr < endAddr)
@@ -177,7 +184,7 @@ void vxlModel::ProcessChunks(char* bytes)
 			this->frameCount = frameCount;
 			break;
 		case BOUNDINGBOX:
-			AddFrame(addr, nextAddr);
+			frameQueue.push_back({.addr = addr, .nextAddr = nextAddr});
 			uint32_t nextContent;
 			uint32_t nextChildren;
 			std::memcpy(&nextContent, nextAddr + 4, 4);
@@ -187,11 +194,17 @@ void vxlModel::ProcessChunks(char* bytes)
 		case RGBA:
 			std::cout << "Pallette Found" << '\n';
 			std::memcpy(this->palette.data(), addr + 12, 1024);
+			std::cout << std::hex << this->palette[79] << '\n';
+			std::cout << std::dec;
 			break;
 		default:
 			break;
 		}
 		addr += (chunkContent + chunkChildren + 12);
+	}
+	for (auto frame : frameQueue)
+	{
+		AddFrame(frame.addr, frame.nextAddr);
 	}
 	std::cout << "Done processing chunks!" << '\n';
 }
@@ -216,10 +229,10 @@ void vxlModel::AddFrame(char* boundData, char* voxelData)
 		auto y = static_cast<uint8_t>(*(voxelData + 18 + (i * 4)));
 		auto z = static_cast<uint8_t>(*(voxelData + 17 + (i * 4)));
 		uint32_t index = (x * bounds.y * bounds.z) + (y * bounds.z) + z;
-		volume[index] = static_cast<int16_t>(*(voxelData + 19 + (i * 4)));
+		volume[index] = static_cast<uint8_t>(*(voxelData + 19 + (i * 4)));
 	}
 
-	vxlMesh mesh = GenerateVoxelMesh(volume, bounds);
+	vxlMesh mesh = GenerateVoxelMesh(volume, bounds, this->palette);
 	this->bounds = bounds;
 
 	this->meshes.push_back(mesh);
