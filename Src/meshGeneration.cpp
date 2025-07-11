@@ -7,7 +7,6 @@
 #include <iostream>
 #include <limits>
 #include <raylib.h>
-#include <utility>
 #include <vector>
 
 namespace vxl

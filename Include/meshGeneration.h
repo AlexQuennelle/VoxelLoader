@@ -1,6 +1,6 @@
 #pragma once
 
-#include "model.h"
+#include "vxlModel.h"
 #include "vxlMesh.h"
 
 #include <cstdint>

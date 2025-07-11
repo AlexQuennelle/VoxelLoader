@@ -1,4 +1,4 @@
-#include "model.h"
+#include "vxlModel.h"
 #include "meshGeneration.h"
 #include "utils.h"
 
@@ -91,8 +91,13 @@ std::ostream& operator<<(std::ostream& os, Vector4Int vec)
 
 vxlModel::vxlModel(const std::string& filePath)
 {
+#if defined(PLATFORM_WEB)
+	this->shader = LoadShader(RESOURCES_PATH "shaders/litShader_web.vert",
+							  RESOURCES_PATH "shaders/litShader_web.frag");
+#else
 	this->shader = LoadShader(RESOURCES_PATH "shaders/litShader.vert",
 							  RESOURCES_PATH "shaders/litShader.frag");
+#endif // DEBUG
 	this->mat = LoadMaterialDefault();
 	this->mat.shader = this->shader;
 
