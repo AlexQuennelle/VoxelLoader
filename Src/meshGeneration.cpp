@@ -12,16 +12,14 @@
 namespace vxl
 {
 
-VXLMesh GenerateVoxelMesh(const vector<int16_t>& volume, Vector3Int bounds)
+vxlMesh GenerateVoxelMesh(const vector<int16_t>& volume, Vector3Int bounds)
 {
-	VXLMesh vxlMesh{RESOURCES_PATH "shaders/litShader.vert",
-					RESOURCES_PATH "shaders/litShader.frag"};
+	vxlMesh vxlmesh;
 	Vector3 offset{};
-	int32_t triangleCount{0};
+	int32_t triCount{0};
 	vector<float> verts{};
 	vector<uint8_t> cols{};
 	vector<float> nors{};
-	vector<uint16_t> indices{};
 	for (uint32_t i{0}; i < volume.size(); i++)
 	{
 		int32_t x = i / (bounds.y * bounds.z);
@@ -30,7 +28,7 @@ VXLMesh GenerateVoxelMesh(const vector<int16_t>& volume, Vector3Int bounds)
 		if (volume[i] != -1)
 		{
 			uint8_t mask{0};
-			uint32_t up = (x * bounds.y * bounds.z) + ((y + 1) * bounds.z) + z;
+			uint32_t top = (x * bounds.y * bounds.z) + ((y + 1) * bounds.z) + z;
 			uint32_t down =
 				(x * bounds.y * bounds.z) + ((y - 1) * bounds.z) + z;
 			uint32_t left =
@@ -41,7 +39,7 @@ VXLMesh GenerateVoxelMesh(const vector<int16_t>& volume, Vector3Int bounds)
 				(x * bounds.y * bounds.z) + (y * bounds.z) + (z - 1);
 			uint32_t back =
 				(x * bounds.y * bounds.z) + (y * bounds.z) + (z + 1);
-			//std::cout << i << '\n';
+
 			offset = {
 				.x = static_cast<float>(x) - (static_cast<float>(bounds.x) / 2),
 				.y = static_cast<float>(y) - (static_cast<float>(bounds.y) / 2),
@@ -49,45 +47,53 @@ VXLMesh GenerateVoxelMesh(const vector<int16_t>& volume, Vector3Int bounds)
 					static_cast<float>(z) - (static_cast<float>(bounds.z) / 2)};
 			mask |= (x == bounds.x - 1 || volume[left] == -1) ? 0b00000001 : 0;
 			mask |= (x == 0 || volume[right] == -1) ? 0b00000010 : 0;
-			mask |= (y == bounds.y - 1 || volume[up] == -1) ? 0b00000100 : 0;
+			mask |= (y == bounds.y - 1 || volume[top] == -1) ? 0b00000100 : 0;
 			mask |= (y == 0 || volume[down] == -1) ? 0b00001000 : 0;
 			mask |= (z == bounds.z - 1 || volume[back] == -1) ? 0b00010000 : 0;
 			mask |= (z == 0 || volume[front] == -1) ? 0b00100000 : 0;
-			triangleCount = AddVoxel(offset, verts, cols, nors, indices,
-									 triangleCount, mask);
-			//std::cout << "Triangles: " << triangleCount << '\n';
-			if (triangleCount * 3 > std::numeric_limits<uint16_t>::max() - 12)
+			triCount = AddVoxel(offset, verts, cols, nors, triCount, mask);
+			if (triCount > (std::numeric_limits<uint16_t>::max() / 3) - 12)
 			{
-				vxlMesh.AddMesh(PopulateMesh(verts, cols, nors, triangleCount));
-				triangleCount = 0;
+				std::cout << "Triangles: " << triCount << '/'
+						  << (std::numeric_limits<uint16_t>::max() / 3) << '\n';
+				std::cout << "Vertices: " << verts.size() / 3 << '\n';
+				std::cout << "Split\n";
+
+				auto* mesh = new Mesh();
+				vxlmesh.meshes.push_back(*mesh);
+				PopulateMesh(vxlmesh.meshes[vxlmesh.meshes.size() - 1], verts,
+							 cols, nors, triCount);
+				//vxlmesh.meshes.push_back(
+				//	PopulateMesh(verts, cols, nors, triCount));
+				triCount = 0;
 				verts.clear();
 				cols.clear();
 				nors.clear();
 			}
 		}
 	}
-	if (triangleCount != 0)
+
+	if (triCount != 0)
 	{
-		vxlMesh.AddMesh(PopulateMesh(verts, cols, nors, triangleCount));
+		std::cout << "Triangles: " << triCount << '/'
+				  << (std::numeric_limits<uint16_t>::max() / 3) << '\n';
+		std::cout << "Vertices: " << verts.size() / 3 << '\n';
+
+		//vxlmesh.meshes.push_back(PopulateMesh(verts, cols, nors, triCount));
+		auto* mesh = new Mesh();
+		vxlmesh.meshes.push_back(*mesh);
+		//vxlmesh.meshes[vxlmesh.meshes.size() - 1];
+		PopulateMesh(vxlmesh.meshes[vxlmesh.meshes.size() - 1], verts, cols,
+					 nors, triCount);
 	}
-	std::cout << "meshes: " << vxlMesh.meshes.size() << '\n';
-	return vxlMesh;
+
+	return vxlmesh;
 };
 
-Mesh PopulateMesh(const vector<float>& verts, const vector<uint8_t>& cols,
-				  const vector<float>& nors, const int32_t triCount)
+void PopulateMesh(Mesh& mesh, vector<float>& verts, vector<uint8_t>& cols,
+				  vector<float>& nors, int32_t triCount)
 {
-	Mesh mesh;
-	std::cout << "Triangles: " << triCount << '/'
-			  << std::numeric_limits<uint16_t>::max() / 3 << '\n';
-	std::cout << "Vertices: " << verts.size() << '\n';
-	// for (uint32_t i{0}; i < verts.size(); i += 3)
-	// {
-	// 	verts[i] -= static_cast<float>(bounds.x) / 2;
-	// 	verts[i + 1] -= static_cast<float>(bounds.y) / 2;
-	// 	verts[i + 2] -= static_cast<float>(bounds.z) / 2;
-	// }
-
+	vector<uint16_t> indices{};
 	mesh.vertices = (float*)std::malloc(verts.size() * sizeof(float));
 	std::memcpy(mesh.vertices, verts.data(), verts.size() * sizeof(float));
 
@@ -114,14 +120,11 @@ Mesh PopulateMesh(const vector<float>& verts, const vector<uint8_t>& cols,
 	mesh.vertexCount = verts.size() / 3;
 	mesh.triangleCount = triCount;
 
-	//assert(mesh.indices == NULL);
-
-	return mesh;
+	//return mesh;
 }
 
 int32_t AddVoxel(Vector3 offset, vector<float>& verts, vector<uint8_t>& cols,
-				 vector<float>& nors, vector<uint16_t>& indices,
-				 int32_t triCount, uint8_t mask)
+				 vector<float>& nors, int32_t triCount, uint8_t mask)
 {
 	int32_t newTriCount{triCount};
 	vector<float> newVerts{};
@@ -130,14 +133,10 @@ int32_t AddVoxel(Vector3 offset, vector<float>& verts, vector<uint8_t>& cols,
 	if ((mask & 0b00010000) != 0)
 	{
 		const vector<float> face1Verts{0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f,
-									   //1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f,
 									   1.0f, 1.0f, 1.0f, 0.0f, 1.0f, 1.0f};
-		const vector<uint8_t> face1Cols{
-			255, 0, 0, 255, 0, 255, 0, 255,
-			//0,	 0,	  255, 255, 255, 0,	  0,   255,
-			0, 255, 0, 255, 0, 0, 255, 255};
+		const vector<uint8_t> face1Cols{255, 0,	  0, 255, 0, 255, 0,   255,
+										0,	 255, 0, 255, 0, 0,	  255, 255};
 		const vector<float> face1Nors{0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f,
-									  //0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f,
 									  0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f};
 		newVerts.insert(newVerts.end(), face1Verts.begin(), face1Verts.end());
 		cols.insert(cols.end(), face1Cols.begin(), face1Cols.end());
@@ -149,14 +148,10 @@ int32_t AddVoxel(Vector3 offset, vector<float>& verts, vector<uint8_t>& cols,
 	if ((mask & 0b00100000) != 0)
 	{
 		const vector<float> face2Verts{0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
-									   //1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
 									   1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f};
-		const vector<uint8_t> face2Cols{
-			255, 0, 0, 255, 0, 255, 0, 255,
-			//0,	 0,	  255, 255, 255, 0,	  0,   255,
-			0, 255, 0, 255, 0, 0, 255, 255};
+		const vector<uint8_t> face2Cols{255, 0,	  0, 255, 0, 255, 0,   255,
+										0,	 255, 0, 255, 0, 0,	  255, 255};
 		const vector<float> face2Nors{0.0f, 0.0f, -1.0f, 0.0f, 0.0f, -1.0f,
-									  //0.0f, 0.0f, -1.0f, 0.0f, 0.0f, -1.0f,
 									  0.0f, 0.0f, -1.0f, 0.0f, 0.0f, -1.0f};
 		newVerts.insert(newVerts.end(), face2Verts.begin(), face2Verts.end());
 		cols.insert(cols.end(), face2Cols.begin(), face2Cols.end());
@@ -168,14 +163,10 @@ int32_t AddVoxel(Vector3 offset, vector<float>& verts, vector<uint8_t>& cols,
 	if ((mask & 0b00000100) != 0)
 	{
 		const vector<float> face3Verts{0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f,
-									   //1.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f,
 									   1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f};
-		const vector<uint8_t> face3Cols{
-			255, 0, 0, 255, 0, 255, 0, 255,
-			//0,	 0,	  255, 255, 255, 0,	  0,   255,
-			0, 255, 0, 255, 0, 0, 255, 255};
+		const vector<uint8_t> face3Cols{255, 0,	  0, 255, 0, 255, 0,   255,
+										0,	 255, 0, 255, 0, 0,	  255, 255};
 		const vector<float> face3Nors{0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
-									  //0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
 									  0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f};
 		newVerts.insert(newVerts.end(), face3Verts.begin(), face3Verts.end());
 		cols.insert(cols.end(), face3Cols.begin(), face3Cols.end());
@@ -187,14 +178,10 @@ int32_t AddVoxel(Vector3 offset, vector<float>& verts, vector<uint8_t>& cols,
 	if ((mask & 0b00001000) != 0)
 	{
 		const vector<float> face4Verts{0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
-									   //1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f,
 									   1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f};
-		const vector<uint8_t> face4Cols{
-			255, 0, 0, 255, 0, 255, 0, 255,
-			//0,	 0,	  255, 255, 255, 0,	  0,   255,
-			0, 255, 0, 255, 0, 0, 255, 255};
+		const vector<uint8_t> face4Cols{255, 0,	  0, 255, 0, 255, 0,   255,
+										0,	 255, 0, 255, 0, 0,	  255, 255};
 		const vector<float> face4Nors{0.0f, -1.0f, 0.0f, 0.0f, -1.0f, 0.0f,
-									  //0.0f, -1.0f, 0.0f, 0.0f, -1.0f, 0.0f,
 									  0.0f, -1.0f, 0.0f, 0.0f, -1.0f, 0.0f};
 		newVerts.insert(newVerts.end(), face4Verts.begin(), face4Verts.end());
 		cols.insert(cols.end(), face4Cols.begin(), face4Cols.end());
@@ -206,14 +193,10 @@ int32_t AddVoxel(Vector3 offset, vector<float>& verts, vector<uint8_t>& cols,
 	if ((mask & 0b00000001) != 0)
 	{
 		const vector<float> face5Verts{1.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f,
-									   //1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f,
 									   1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f};
-		const vector<uint8_t> face5Cols{
-			255, 0, 0, 255, 0, 255, 0, 255,
-			//0,	 0,	  255, 255, 255, 0,	  0,   255,
-			0, 255, 0, 255, 0, 0, 255, 255};
+		const vector<uint8_t> face5Cols{255, 0,	  0, 255, 0, 255, 0,   255,
+										0,	 255, 0, 255, 0, 0,	  255, 255};
 		const vector<float> face5Nors{1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
-									  //1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
 									  1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f};
 		newVerts.insert(newVerts.end(), face5Verts.begin(), face5Verts.end());
 		cols.insert(cols.end(), face5Cols.begin(), face5Cols.end());
@@ -225,14 +208,10 @@ int32_t AddVoxel(Vector3 offset, vector<float>& verts, vector<uint8_t>& cols,
 	if ((mask & 0b00000010) != 0)
 	{
 		const vector<float> face6Verts{0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f,
-									   //0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f,
 									   0.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f};
-		const vector<uint8_t> face6Cols{
-			255, 0, 0, 255, 0, 255, 0, 255,
-			//0,	 0,	  255, 255, 255, 0,	  0,   255,
-			0, 255, 0, 255, 0, 0, 255, 255};
+		const vector<uint8_t> face6Cols{255, 0,	  0, 255, 0, 255, 0,   255,
+										0,	 255, 0, 255, 0, 0,	  255, 255};
 		const vector<float> face6Nors{-1.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f,
-									  //-1.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f,
 									  -1.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f};
 		newVerts.insert(newVerts.end(), face6Verts.begin(), face6Verts.end());
 		cols.insert(cols.end(), face6Cols.begin(), face6Cols.end());

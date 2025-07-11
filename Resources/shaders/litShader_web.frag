@@ -12,6 +12,6 @@ uniform vec4 colDiffuse;
 
 void main()
 {
-    //finalColor = fragColor;
-    gl_FragColor = vec4(fragNormal, 1.0);
+	gl_FragColor = fragColor;
+    //gl_FragColor = vec4(fragNormal, 1.0);
 }
